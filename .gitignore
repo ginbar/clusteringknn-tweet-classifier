@@ -143,4 +143,5 @@ twitter_credentials.json
 # Data folder
 /data
 
-.
+# Vim session file
+Session.vim
