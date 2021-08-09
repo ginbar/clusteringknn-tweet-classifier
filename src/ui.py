@@ -6,95 +6,115 @@ from wordcloud import WordCloud, STOPWORDS
 
 
 class WordCloudUI(object):
-	"""GUI component for cluster labeling."""
+        """GUI component for cluster labeling."""
 
 
-	def __init__(self, clusters, font_path=None):
-		super(WordCloudUI, self).__init__()
-		self._clusters = clusters
-		self._lesser_dissimilar_labels = np.array(len(clusters))
-		self._most_dissimilar_labels = np.array(len(clusters))
-		self._cluster_index = 0
-		self._create_graphic_components()
-
-
-
-	def _create_graphic_components(self):
-		self._wordcloud = WordCloud(background_color='white', stopwords=set(STOPWORDS))
-		self._fig = plt.figure(figsize=(8, 8))
-		self._fig.suptitle('DSDASDSSS')
-		self._image = None
-		
-		self._axis = self._fig.add_axes([0.1, 0.3, 0.8, 0.6])
-
-		self._img_axis = plt.subplot(111)
-		self._btn_axis = plt.axes([0.9, 0.0, 0.1, 0.075])
-		
-		self._most_dissimilar_txtbox = TextBox()
-		self._lesser_dissimilar_txtbox
-
-		label_options = ('Negative', 'Neutral', 'Positive')
-		
-		l_rbtn_ax = plt.axes([0.20, 0.015, 0.1, 0.075])
-		self._label_radio_btn = RadioButtons(l_rbtn_ax, label_options)
-
-		m_rbtn_ax = plt.axes([0.80, 0.015, 0.1, 0.075])
-		self._label_radio_btn = RadioButtons(m_rbtn_ax, label_options)
-		
-		#self._neg_btn = Button(plt.axes([0.20, 0.015, 0.1, 0.075]), 'Negative', color='red', hovercolor='blue')
-		#self._neu_btn = Button(plt.axes([0.40, 0.015, 0.1, 0.075]), 'Neutral', color='orange', hovercolor='blue')
-		#self._pos_btn = Button(plt.axes([0.65, 0.015, 0.1, 0.075]), 'Positive', color='green', hovercolor='blue')
-
-		self._prev_btn = Button(plt.axes([0.05, 0.015, 0.1, 0.075]), '<', color='grey', hovercolor='blue')
-		self._next_btn = Button(plt.axes([0.85, 0.015, 0.1, 0.075]), '>', color='grey', hovercolor='blue')
-
-		self._fin_btn = Button(plt.axes([0.85, 0.015, 0.1, 0.075]), 'Finish' color='grey', hovercolor='blue') 
+        def __init__(self, clusters, font_path=None):
+                super(WordCloudUI, self).__init__()
+                self._clusters = clusters
+                self._cluster_index = 0
+                
+                self._lesser_dissimilar_labels = np.tile(-1, len(clusters))
+                self._most_dissimilar_labels = np.tile(-1, len(clusters))
+                
+                self._create_graphic_components()
+                self._show_current_cluster_data()
+                self._enable_or_disable_components()
 
 
 
-	def _prev_evt(self):
-		self._cluster_index = self._cluster_index - 1
-		if self._cluster_index <= 0:
-		    self._prev_btn.set_active(False)
-		self._show_current_cluster_data()
+        def _create_graphic_components(self):
+                self._wordcloud = WordCloud(background_color='white', stopwords=set(STOPWORDS))
+                self._fig = plt.figure(figsize=(8, 8))
+                self._fig.canvas.set_window_title('Cluster Classifier')
+                self._image = None
+                
+                self._img_axis = plt.subplot(2, 1, 1)
+                
+                label_options = ('Negative', 'Neutral', 'Positive')
+                
+                self._lesser_dis_radiobtn = RadioButtons(plt.subplot(5, 3, 3), label_options)
+                self._lesser_dissimilar_txtbox = TextBox(plt.subplot(5, 2, 4), None)
+                
+                self._most_dis_radiobtn = RadioButtons(plt.subplot(5, 3, 5), label_options)
+                self._most_dissimilar_txtbox = TextBox(plt.subplot(5, 2, 6), None)
+
+                self._prev_btn = Button(plt.subplot(5, 3, 7), '<', color='grey', hovercolor='blue')
+                self._fin_btn = Button(plt.subplot(5, 3, 8), 'Finish', color='green', hovercolor='blue') 
+                self._next_btn = Button(plt.subplot(5, 3, 9), '>', color='grey', hovercolor='blue')
+                
+                self._prev_btn.on_clicked(self._prev_evt)
+                self._next_btn.on_clicked(self._next_evt)
+                self._fin_btn.on_clicked(self.close)
+        
+
+
+        def _lesser_rbtn_click(self, e):
+                self._lesser_dissimilar_labels[self._cluster_index] = e.value 
 
 
 
-	def _next_evt(self):
-		self._cluster_index = self._cluster_index + 1
-		self._prev_btn.set_active(True)
-		if self._cluster_index == len(self._clusters):
-		    self._next_btn.set_active(True)
-		self._show_current_cluster_data()
+        def _most_rbtn_click(self, e):
+                self._most_dissimilar_labels[self._cluster_index] = e.value 
+        
+
+
+        def _prev_evt(self):
+                self._cluster_index = self._cluster_index - 1
+                self._enable_or_disable_components()
+                self._show_current_cluster_data()
 
 
 
-	def _can_finish_evt(self):
-		can_finish = False 
-		self._fin_btn.set_active(True)
+        def _next_evt(self):
+                self._cluster_index = self._cluster_index + 1
+                self._enable_or_disable_components()
+                self._show_current_cluster_data()
 
 
 
-	def _show_current_cluster_data(self, cluster_name, text):
-		cluster = self._clusters[self._cluster_index]
-		self._image = self._wordcloud.generate(text).recolor(random_state=2020)
-		self._axis.imshow(self._image)
-		self._fig.subtitle(cluster_name)
-		
-		plt.axis('off')
+        def _enable_or_disable_components(self):
+                can_finish = np.all(self._lesser_dissimilar_labels != -1) == 1
+                can_finish = can_finish and np.all(self._most_dissimilar_labels != -1) == 1
+                
+                self._prev_btn.set_active(self._cluster_index <= 0)
+                self._next_btn.set_active(self._cluster_index == len(self._clusters))
+                self._fin_btn.set_active(can_finish)
 
 
 
-	def show(self):
-		plt.show()
+        def _can_finish_evt(self):
+                can_finish = False 
+                self._fin_btn.set_active(True)
 
 
 
-	def close(self):
-		plt.close()
+        def _show_current_cluster_data(self):
+                cluster = self._clusters[self._cluster_index]
+                self._image = self._wordcloud.generate(cluster.text).recolor(random_state=2020)
+                self._img_axis.imshow(self._image)
+                self._fig.suptitle(cluster.name)
+                
+                self._most_dissimilar_txtbox.set_val(cluster.most_dissimilar)
+                self._lesser_dissimilar_txtbox.set_val(cluster.lesser_dissimilar)
+                
+                self._lesser_dis_radiobtn.set_active(self._lesser_dissimilar_labels[self._cluster_index])
+                self._most_dis_radiobtn.set_active(self._most_dissimilar_labels[self._cluster_index])
+                
+                plt.axis('off')
 
 
 
-	def get_assigned_labels(self):
-		return self._lesser_dissimilar_labels, self._most_dissimilar_labels
+        def show(self):
+                plt.show()
+
+
+
+        def close(self):
+                plt.close()
+
+
+
+        def get_assigned_labels(self):
+                return self._lesser_dissimilar_labels, self._most_dissimilar_labels
 

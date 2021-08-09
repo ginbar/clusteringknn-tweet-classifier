@@ -1,6 +1,6 @@
 from ui import WordCloudUI
+from dto import Cluster
 
-gui = WordCloudUI()
 
 text = 'Supervised learning is the machine learning task of learning a function that maps an input to \
         an output based on example input-output pairs.[1] It infers a function from labeled training data \
@@ -11,5 +11,12 @@ text = 'Supervised learning is the machine learning task of learning a function 
         the class labels for unseen instances. This requires the learning algorithm to generalize from the training \
         data to unseen situations in a "reasonable" way (see inductive bias).'
 
-gui.feed_cluster_data('Cluster 1', text) 
+clusters = [
+        Cluster('Cluster1', text, 'asdsa', 'asdasd'),
+        Cluster('Cluster2', text, 'asdsa', 'asdasd'),
+        Cluster('Cluster3', text, 'asdsa', 'asdasd')]
+
+gui = WordCloudUI(clusters=clusters)
+
+#gui.feed_cluster_data('Cluster 1', text) 
 gui.show()
