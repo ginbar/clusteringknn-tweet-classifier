@@ -12,9 +12,9 @@ text = 'Supervised learning is the machine learning task of learning a function 
         data to unseen situations in a "reasonable" way (see inductive bias).'
 
 clusters = [
-        Cluster('Cluster1', text, 'asdsa', 'asdasd'),
-        Cluster('Cluster2', text, 'asdsa', 'asdasd'),
-        Cluster('Cluster3', text, 'asdsa', 'asdasd')]
+        Cluster('Cluster1', text, 'Some opinions about a subject.', 'Another opinion about the same subject.'),
+        Cluster('Cluster2', text, 'ld2', 'md2'),
+        Cluster('Cluster3', text, 'ld3', 'md3')]
 
 gui = WordCloudUI(clusters=clusters)
 
