@@ -4,6 +4,8 @@ import collections
 from sklearn.base import ClassifierMixin
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.cluster import KMeans
+from scipy.cluster.hierarchy import dendrogram, linkage, ClusterNode
+from scipy.spatial.distance import euclidean
 from scipy.spatial import KDTree
 from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.corpus import stopwords
@@ -18,16 +20,28 @@ class ClusterTreeKNN(ClassifierMixin):
 
     def __init__(self):
         super(ClusterTreeKNN, self).__init__()
+
+        # Parameters
         self._initial_H_level_thereshould = 0.5
+        
         self._kdtree = None
+        self._Blevel = None
 
 
 
-    def fit(self, data, clusters_masks, labels):
+    def fit(self, data, clusters_masks, centroids, c_distances, valid_clusters, labels):
         
         self._kdtree = KDTree(data)
 
-        B = clusters
+        self._Blevel = clusters
+        
+        for vc in valid_clusters:
+            cluster = data[clusters_masks == vc]
+
+
+
+        most_dissimilars =  
+
         H = clusters[:,-1]
         B = clusters[:,-1]
 
@@ -46,20 +60,6 @@ class ClusteringPreprocessor(object):
     def __init__(self, n_clusters):
         super(ClusteringPreprocessor, self).__init__()
         self._model = KMeans(n_clusters=n_clusters)
-
-    def create_clusters(self, data, n_clusters, labels):
-        #TODO Remove this implementation
-        clusters = []
-        for label in range(n_clusters):
-            cluster_data = data[labels==label]
-            centroid = cluster_data.mean(axis=0)
-            dissimilarities = cluster_data - centroid
-            dissimilarities = np.abs(dissimilarities).sum(axis=1)
-            ordering = np.argsort(dissimilarities, axis=0)
-            cluster_data[ordering] = cluster_data
-            clusters.append(cluster_data)
-        return np.array(clusters)
-
 
     def create_clusters_masks(self, data):
         tokenized_tweets = self.tokenizer(data)

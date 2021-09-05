@@ -1,5 +1,5 @@
 import json
-import Twython
+import os
 import tweepy
 
 
@@ -8,32 +8,28 @@ credentials = None
 with open("twitter_credentials.json", "r") as file:
     credentials = json.load(file)
 
-auth = tweepy.OAuthHandler(credentials['CONSUMER_KEY'], credentials['CONSUMER_SECRET'])
-client = tweepy.Client() # Twitter API v2
+
+
+HASHTAG_FILES_PATH = 'data/hastags/' 
+API_KEY = credentials['API_KEY']
+API_SECRET_KEY = credentials['API_SECRET_KEY']
 
 
 
-def search_tweets(search, max=5000):
-    tweets = client.search_recent_tweets(search)
-    return [status['text'] for status in tweets['statuses']]
+auth = tweepy.AppAuthHandler(API_KEY, API_SECRET_KEY)
+api = tweepy.API(auth)
 
 
-def create_tweets_file_for_hashtag(hashtag, max=5000, path=None):
-    tweets = search_tweets('#' + hashtag, max=max)
-    if path is None:
-        path = 'data/hastags/' + hashtag
-    with open(path, 'w') as file:
-        file.writelines(tweets)
+
+def create_tweets_file_for_hashtag(hashtag, max=50, path=None):
     
+    if path is None:
+        if not os.path.exists(HASHTAG_FILES_PATH):
+            os.makedirs(HASHTAG_FILES_PATH)
+        path = HASHTAG_FILES_PATH + hashtag
+    
+    with open(path, 'a+') as f:
+        tweets = tweepy.Cursor(api.search, q=hashtag).items(max)
+        for tweet in tweets:
+            f.write(tweet.text + '\n')
 
-
-# api = Twython(credentials['CONSUMER_KEY'], credentials['CONSUMER_SECRET'])
-
-# def search_tweets(search, max=5000):
-#     tweets = api.search({
-#         'q': search,
-#         'result_type': 'popular',
-#         'count': max,
-#         'lang': 'pt',
-#     })
-#     return [status['text'] for status in tweets['statuses']]
