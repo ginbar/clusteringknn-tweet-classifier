@@ -2,6 +2,7 @@ import json
 import os
 import tweepy
 
+from lemmatizer import lemmatize
 
 
 credentials = None
@@ -26,10 +27,24 @@ def create_tweets_file_for_hashtag(hashtag, max=50, path=None):
     if path is None:
         if not os.path.exists(HASHTAG_FILES_PATH):
             os.makedirs(HASHTAG_FILES_PATH)
-        path = HASHTAG_FILES_PATH + hashtag
+        
+        path = HASHTAG_FILES_PATH + hashtag + '/'
     
-    with open(path, 'a+') as f:
+        if not os.path.exists(path):
+            os.makedirs(path)
+    
+    rfile_path = f'{path}/{hashtag}'
+    lfile_path = f'{path}/{hashtag}.lem'
+
+    with open(rfile_path, 'a+') as rfile, open(lfile_path, 'a+') as lfile:
+        
         tweets = tweepy.Cursor(api.search, q=hashtag).items(max)
+        
         for tweet in tweets:
-            f.write(tweet.text + '\n')
+            inline = tweet.text.replace('\n', ' ') + '\n'
+            lemmatized = lemmatize(inline)
+            
+            if lemmatized:
+                rfile.write(inline)
+                lfile.write(lemmatized)
 
