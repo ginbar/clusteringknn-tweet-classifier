@@ -141,7 +141,8 @@ cython_debug/
 twitter_credentials.json
 
 # Data folder
-/data
+data/hashtags
+data/models
 
 # Vim session file
 Session.vim

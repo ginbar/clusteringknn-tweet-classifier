@@ -10,9 +10,6 @@ from scipy.spatial import KDTree
 from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.corpus import stopwords
 
-# downloading nltk corpuses files
-nltk.download('stopwords')
-
 
 
 class ClusterTreeKNN(ClassifierMixin):

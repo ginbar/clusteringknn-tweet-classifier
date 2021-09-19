@@ -11,7 +11,7 @@ with open("twitter_credentials.json", "r") as file:
 
 
 
-HASHTAG_FILES_PATH = 'data/hastags/' 
+HASHTAG_FILES_PATH = 'data/hashtags/' 
 API_KEY = credentials['API_KEY']
 API_SECRET_KEY = credentials['API_SECRET_KEY']
 

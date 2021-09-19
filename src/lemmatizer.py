@@ -1,38 +1,33 @@
-import nltk
 import re
-
-from nltk.tokenize import word_tokenize, sent_tokenize
-from nltk.stem import WordNetLemmatizer
-from nltk.corpus import stopwords
+import stanza
 
 
-# downloading nltk corpuses files
-# nltk.download('stopwords')
 
-hashtag_rgx = re.compile('\#[A-Za-z0-9]+', re.VERBOSE | re.IGNORECASE) 
-mentions_rgx = re.compile('@[A-Za-z0-9]+', re.VERBOSE | re.IGNORECASE) 
-rt_rgx = re.compile('RT [\s]+:', re.VERBOSE | re.IGNORECASE)
+hashtag_rgx = re.compile('\#[\S]+', re.VERBOSE | re.IGNORECASE) 
+mentions_rgx = re.compile('@[\S]+', re.VERBOSE | re.IGNORECASE) 
+rt_rgx = re.compile('RT\s@[\S]+:', re.VERBOSE | re.IGNORECASE)
 url_rgx = re.compile('https?:\/\/.\S+', re.VERBOSE | re.IGNORECASE)
 
 
-lemmatizer = WordNetLemmatizer()
 
+nlp = stanza.Pipeline('pt')
 
 stopwords = set([sw[:-1] for sw in open('data/stopwords/pt-br.txt', 'r').readlines()])
 
 
+
 def lemmatize(text):
     
-    stripped = hashtag_rgx.sub('', text)
+    stripped = rt_rgx.sub('', text)
+    stripped = hashtag_rgx.sub('', stripped)
     stripped = mentions_rgx.sub('', stripped)
-    stripped = rt_rgx.sub('', stripped)
     stripped = url_rgx.sub('', stripped)
     
     stripped = stripped.replace('\n', ' ')
 
-    tokens = word_tokenize(stripped)
-    lemmatized = [lemmatizer.lemmatize(t) for t in tokens if t not in stopwords]
-
+    sentences = nlp(stripped).sentences
+    lemmatized = [w.lemma for s in sentences for w in s.words if w.lemma not in stopwords]
+    
     if len(lemmatized) == 0:
         return None
     
