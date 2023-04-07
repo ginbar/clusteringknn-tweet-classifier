@@ -2,7 +2,7 @@ import json
 import os
 import tweepy
 
-from lemmatizer import lemmatize
+from preprocessing.lemmatizer import lemmatize
 
 
 credentials = None
@@ -22,7 +22,18 @@ api = tweepy.API(auth)
 
 
 
-def create_tweets_file_for_hashtag(hashtag, max=50, path=None):
+def create_tweets_file_for_hashtag(hashtag: str, max: int = 50, path: str = None) -> None:
+    """
+    Creates a file containing tweets that contain a specified hashtag.
+    
+    Parameters:
+    - hashtag (str): A string that represents the hashtag to search for.
+    - max (int): An integer that represents the maximum number of tweets to retrieve (default is 50).
+    - path (str): A string that represents the file path where the tweets will be saved.
+
+    Returns:
+    - None: This function does not return anything. Instead, it saves the tweets in a file specified by the path parameter.
+    """
     
     if path is None:
         if not os.path.exists(HASHTAG_FILES_PATH):
