@@ -146,3 +146,6 @@ data/models
 
 # Vim session file
 Session.vim
+
+# VSCode folder
+.vscode
