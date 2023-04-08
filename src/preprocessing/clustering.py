@@ -1,7 +1,8 @@
+from numpy import ndarray
 from sklearn.cluster import KMeans
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize, sent_tokenize
-
+from dtos.bottom_level_cluster import BottomLevelCluster
 
 
 class ClusteringPreprocessor(object):
@@ -11,10 +12,15 @@ class ClusteringPreprocessor(object):
         super(ClusteringPreprocessor, self).__init__()
         self._model = KMeans(n_clusters=n_clusters)
 
-    def create_clusters_masks(self, data):
+    def fit(self, data):
         tokenized_tweets = self.tokenizer(data)
         self._model.fit(tokenized_tweets)
+
+    def get_clusters_masks(self) -> ndarray:
         return self._model.labels_
+
+    def create_clusters():
+        return []
 
 
     def tokenizer(tweets: list[str]) -> list[list[str]]:

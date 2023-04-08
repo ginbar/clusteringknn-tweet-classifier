@@ -1,5 +1,5 @@
 
-class Cluster(object):
+class BottomLevelCluster(object):
     """
     Representes a cluster created at the first phase of the method.
     """
