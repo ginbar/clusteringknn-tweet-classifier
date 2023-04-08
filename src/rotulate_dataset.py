@@ -1,5 +1,5 @@
-from ui import WordCloudUI
-from dto import Cluster
+from ui.word_cloud_ui import WordCloudUI
+from dtos.cluster import Cluster
 
 
 text = 'Supervised learning is the machine learning task of learning a function that maps an input to \

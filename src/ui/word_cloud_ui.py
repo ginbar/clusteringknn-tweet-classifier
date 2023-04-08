@@ -16,8 +16,8 @@ class WordCloudUI(object):
                 self._clusters = clusters
                 self._cluster_index = 0
                 
-                self._lesser_dissimilar_labels = np.tile(-1, len(clusters))
-                self._most_dissimilar_labels = np.tile(-1, len(clusters))
+                self._lesser_dissimilar_labels = np.tile(1, len(clusters))
+                self._most_dissimilar_labels = np.tile(1, len(clusters))
                 
                 self.label_options = { 'Negative': 0, 'Neutral': 1, 'Positive': 2 }
 
@@ -63,18 +63,17 @@ class WordCloudUI(object):
 
         def _create_graphic_components(self) -> None:
             self._wordcloud = WordCloud(background_color='white', stopwords=set(STOPWORDS))
-            self._fig = plt.figure(figsize=(8, 5))
-            self._fig.canvas.set_window_title('Cluster Classifier')
+            self._fig = plt.figure(num='Cluster Classifier', figsize=(8, 5))
             self._image = None
             
             self._img_axis = plt.subplot2grid((2,3), (0,0), colspan=4)
             
-            options = self.label_options.keys()
+            options = list(self.label_options.keys())
             
-            self._lesser_dis_radiobtn = RadioButtons(plt.subplot2grid((6,6), (3,0)), options)
+            self._lesser_dis_radiobtn = RadioButtons(plt.subplot2grid((6,6), (3,0)), labels=options)
             self._lesser_dissimilar_txtbox = TextBox(plt.subplot2grid((6,5), (3,1), colspan=4), None)
             
-            self._most_dis_radiobtn = RadioButtons(plt.subplot2grid((6,6), (4,0)), options)
+            self._most_dis_radiobtn = RadioButtons(plt.subplot2grid((6,6), (4,0)), labels=options)
             self._most_dissimilar_txtbox = TextBox(plt.subplot2grid((6,5), (4,1), colspan=4), None)
 
             self._prev_btn = Button(plt.subplot2grid((6,3), (5,0)), '<', color='grey', hovercolor='blue')
@@ -134,7 +133,7 @@ class WordCloudUI(object):
             
             self._most_dissimilar_txtbox.set_val(cluster.most_dissimilar)
             self._lesser_dissimilar_txtbox.set_val(cluster.lesser_dissimilar)
-            
+
             self._lesser_dis_radiobtn.set_active(self._lesser_dissimilar_labels[self._cluster_index])
             self._most_dis_radiobtn.set_active(self._most_dissimilar_labels[self._cluster_index])
             
