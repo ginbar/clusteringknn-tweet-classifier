@@ -53,11 +53,14 @@ class TextTransforms(object):
         """
         Lemmatizes a given text string using Stanza's Pipelines.
 
-        Parameters:
-        - text (str): A string of text to be lemmatized.
+        Parameters
+        ----------
+            text : str
+                A string of text to be lemmatized.
 
-        Returns:
-        - str: A string of text that has been lemmatized.
+        Returns
+        ----------
+            str : A string of text that has been lemmatized.
         """
         
         stripped = rt_rgx.sub('', text)
@@ -67,7 +70,7 @@ class TextTransforms(object):
         
         stripped = stripped.replace('\n', ' ')
 
-        sentences = nlp(stripped).sentences
+        sentences = self._nlp(stripped).sentences
         lemmatized = [w.lemma for s in sentences for w in s.words if w.lemma not in stopwords.words(self._language)]
         
         if len(lemmatized) == 0:
@@ -81,27 +84,25 @@ class TextTransforms(object):
         """
         Vectorize a list of texts.
 
-        Parameters:
-        - texts (str): A string of text to be lemmatized.
+        Parameters
+        ----------
+            texts : str
+                A string of text to be lemmatized.
 
         Returns:
-        - str: A string of text that has been lemmatized.
+        ----------
+            str : A string of text that has been lemmatized.
         """
 
         #TODO Try to improve performance
 
         langsw = set(stopwords.words(self._language))
-
         tokenized_tweets = (Counter(w for w in word_tokenize(t.lower(), self._language) if w.isalpha() and not w in langsw) for t in texts)
 
         vectorizer =  DictVectorizer(sparse=True)
-        print(tokenized_tweets)
         vect_data = vectorizer.fit_transform(tokenized_tweets)
+
+        print(tokenized_tweets)
         print(vect_data)
 
-        # sums = np.sum(vect_data, axis=1).A[:, 0]
-        # N = len(s)
-        # divisor = csr_matrix((np.reciprocal(s), (range(N), range(N))))
-        # vect_data = divisor * vect_data
-        
         return vect_data

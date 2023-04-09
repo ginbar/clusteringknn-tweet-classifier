@@ -5,7 +5,6 @@ from dtos.bottom_level_cluster import BottomLevelCluster
 
 
 
-
 class ClusteringPreprocessor(object):
     """
     Generates the bottom layer clusters to be labeled.
@@ -30,6 +29,19 @@ class ClusteringPreprocessor(object):
 
 
     def fit(self, data: list[str]) -> None:
+        """
+        Generates the bottom layer clusters to be labeled.
+        
+        Parameters
+        ----------
+        data : list[str]
+            Texts to be clusterized.
+
+        Returns
+        ----------
+            None : The method returns nothing.
+        """
+
         self._dataset = data
         tokenized_tweets = self._transforms.vectorize(data)
         print(tokenized_tweets)
@@ -38,7 +50,22 @@ class ClusteringPreprocessor(object):
 
 
     def create_clusters(self) -> list[BottomLevelCluster]:
+        """
+        Generates the bottom layer clusters to be labeled.
+        
+        Parameters
+        ----------
+        n_clusters : int
+            Number of clusters to be generated.
 
+        language : str
+            Language of the data to be inputed.
+        
+        Returns
+        ----------
+            list[BottomLevelCluster] : BottomLevelClusters with the lesser and most dissimilar entries.
+        """
+        
         clusters = []
 
         for cluster_index in range(0, len(self._model.cluster_centers_)):

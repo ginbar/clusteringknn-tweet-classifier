@@ -7,11 +7,16 @@ from wordcloud import WordCloud, STOPWORDS
 
 class WordCloudUI(object):
         """
-        GUI component for cluster labeling.
+        GUI component for cluster labeling. Shows a word cloud for each cluster.
+        
+        Parameters
+        ----------
+        clusters : list[BottomLevelCluster]
+            List of BottomLevelClusters to be labeled.
         """
 
 
-        def __init__(self, clusters, font_path=None):
+        def __init__(self, clusters):
                 super(WordCloudUI, self).__init__()
                 self._clusters = clusters
                 self._cluster_index = 0
@@ -31,8 +36,9 @@ class WordCloudUI(object):
             """
             Shows UI component.
             
-            Returns:
-            - None: This function does not return anything.
+            Returns
+            ----------
+                None : This function does not return anything.
             """
             plt.show()
 
@@ -42,8 +48,9 @@ class WordCloudUI(object):
             """
             Hides UI component.
             
-            Returns:
-            - None: This function does not return anything.
+            Returns
+            ----------
+                None : This function does not return anything.
             """
             plt.close()
 
@@ -53,8 +60,9 @@ class WordCloudUI(object):
             """
             Get the lists of both the labels assigned to the lesser dissimilar labels.
             
-            Returns:
-            - tuple[list[str], list[str]]: The list of labels assigned to the lesser dissimilar at 
+            Returns
+            ----------
+                tuple[list[str], list[str]] : The list of labels assigned to the lesser dissimilar at 
                 first position and the list of labels assigned to the most dissimilar at second position.
             """
             return self._lesser_dissimilar_labels, self._most_dissimilar_labels
