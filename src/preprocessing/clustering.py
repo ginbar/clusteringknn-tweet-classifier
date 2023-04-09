@@ -1,31 +1,55 @@
-from numpy import ndarray
+import numpy as np
 from sklearn.cluster import KMeans
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize, sent_tokenize
+from preprocessing.text_transforms import TextTransforms
 from dtos.bottom_level_cluster import BottomLevelCluster
 
 
+
+
 class ClusteringPreprocessor(object):
-    """docstring for Preprocessor."""
+    """
+    Generates the bottom layer clusters to be labeled.
+    
+    Parameters
+    ----------
+    n_clusters : int
+        Number of clusters to be generated.
 
-    def __init__(self, n_clusters):
+    language : str
+        Language of the data to be inputed.
+    """
+
+    def __init__(self, n_clusters:int, language:str='portuguese'):
         super(ClusteringPreprocessor, self).__init__()
+        self._language = language
         self._model = KMeans(n_clusters=n_clusters)
+        self._transforms = TextTransforms(language)
+        self._dataset = None
+        self._tokenized_tweets = None
 
-    def fit(self, data):
-        tokenized_tweets = self.tokenizer(data)
+
+
+    def fit(self, data: list[str]) -> None:
+        self._dataset = data
+        tokenized_tweets = self._transforms.vectorize(data)
+        print(tokenized_tweets)
         self._model.fit(tokenized_tweets)
 
-    def get_clusters_masks(self) -> ndarray:
-        return self._model.labels_
-
-    def create_clusters():
-        return []
 
 
-    def tokenizer(tweets: list[str]) -> list[list[str]]:
-        #TODO Implement multiple languages  
-        #TODO Try to improve performance
-        #TODO Apply lematization
-        langsw = stopwords.words('portuguese')
-        return np.array(w for w in word_tokenize(t.lower()) if w.isalpha() and not w in langsw for t in tweets)
+    def create_clusters(self) -> list[BottomLevelCluster]:
+
+        clusters = []
+
+        for cluster_index in range(0, len(self._model.cluster_centers_)):
+            cluster_data = self._dataset[self._model.labels_==cluster_index]
+            cluster_text = ' '.join(cluster_data)
+
+            centroid = self._model.cluster_centers_[cluster_index]
+
+            cluster = BottomLevelCluster(cluster_index, cluster_text, "", "")
+            
+            clusters.append(cluster)
+        
+        return clusters
+

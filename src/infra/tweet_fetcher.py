@@ -2,7 +2,7 @@ import json
 import os
 import tweepy
 
-from preprocessing.lemmatizer import lemmatize
+from preprocessing.text_transforms import TextTransforms
 
 
 credentials = None
@@ -19,7 +19,7 @@ API_SECRET_KEY = credentials['API_SECRET_KEY']
 
 auth = tweepy.AppAuthHandler(API_KEY, API_SECRET_KEY)
 api = tweepy.API(auth)
-
+transforms = TextTransforms()
 
 
 def create_tweets_file_for_hashtag(hashtag: str, max: int = 50, path: str = None) -> None:
@@ -53,7 +53,7 @@ def create_tweets_file_for_hashtag(hashtag: str, max: int = 50, path: str = None
         
         for tweet in tweets:
             inline = tweet.text.replace('\n', ' ') + '\n'
-            lemmatized = lemmatize(inline)
+            lemmatized = transforms.lemmatize(inline)
             
             if lemmatized:
                 rfile.write(inline)

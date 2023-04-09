@@ -1,9 +1,10 @@
+import numpy as np
 from ui.word_cloud_ui import WordCloudUI
 from dtos.bottom_level_cluster import BottomLevelCluster
 from preprocessing.clustering import ClusteringPreprocessor
 
 #TODO Load data
-dataset = []
+dataset = np.array(['asdhj ahdas sasd', 'asdsa asd', 'asdsadsa sad', 'sdsa asdas xcxc', 'aass', 'as ass assss', 'asdc', 'ass'])
 
 #TODO Apply elbow or silhouette methods 
 n_clusters = 4
