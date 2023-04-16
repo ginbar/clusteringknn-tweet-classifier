@@ -1,6 +1,7 @@
 import math
 import numpy as np
-from model.models import ClusterTreeKNN, ClusteringPreprocessor
+from model.cluster_tree_knn import ClusterTreeKNN
+from preprocessing.clustering_preprocessor import ClusteringPreprocessor
 from sklearn.datasets import make_blobs
 from numpy.random import randint
 

@@ -30,7 +30,7 @@ class ClusterTreeKNN(ClassifierMixin):
 
     def __init__(
         self, 
-        initial_H_level_thereshould= 0.5
+        initial_H_level_thereshould:float=0.5
     ):
         super(ClusterTreeKNN, self).__init__()
 

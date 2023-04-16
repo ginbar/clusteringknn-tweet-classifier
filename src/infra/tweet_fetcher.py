@@ -49,18 +49,18 @@ def create_tweets_file_for_hashtag(hashtag: str, max: int = 50, path: str = None
         if not os.path.exists(path):
             os.makedirs(path)
     
-    rfile_path = f'{path}/{hashtag}'
-    lfile_path = f'{path}/{hashtag}.lem'
+    raw_tweets_file_path = f'{path}/{hashtag}'
+    lemmatized_tweets_file_path = f'{path}/{hashtag}.lem'
 
-    with open(rfile_path, 'a+') as rfile, open(lfile_path, 'a+') as lfile:
+    with open(raw_tweets_file_path, 'a+') as raw_tweets_file, open(lemmatized_tweets_file_path, 'a+') as lemmatized_tweets_file:
         
         tweets = tweepy.Cursor(api.search, q=hashtag).items(max)
         
         for tweet in tweets:
-            inline = tweet.text.replace('\n', ' ') + '\n'
-            lemmatized = transforms.lemmatize(inline)
+            raw = tweet.text.replace('\n', ' ') + '\n'
+            lemmatized = transforms.lemmatize(raw)
             
             if lemmatized:
-                rfile.write(inline)
-                lfile.write(lemmatized)
+                raw_tweets_file.write(raw)
+                lemmatized_tweets_file.write(lemmatized)
 

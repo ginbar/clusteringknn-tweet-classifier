@@ -1,7 +1,7 @@
 import numpy as np
 from ui.word_cloud_ui import WordCloudUI
 from dtos.bottom_level_cluster import BottomLevelCluster
-from preprocessing.clustering import ClusteringPreprocessor
+from preprocessing.clustering_preprocessor import ClusteringPreprocessor
 
 #TODO Load data
 dataset = np.array(['asdhj ahdas sasd', 'asdsa asd', 'asdsadsa sad', 'sdsa asdas xcxc', 'aass', 'as ass assss', 'asdc', 'ass'])

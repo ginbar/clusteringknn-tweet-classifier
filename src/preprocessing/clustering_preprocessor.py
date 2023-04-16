@@ -20,7 +20,6 @@ class ClusteringPreprocessor(object):
 
     def __init__(self, n_clusters:int, language:str='portuguese'):
         super(ClusteringPreprocessor, self).__init__()
-        self._language = language
         self._model = KMeans(n_clusters=n_clusters)
         self._transforms = TextTransforms(language)
         self._dataset = None

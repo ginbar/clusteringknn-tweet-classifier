@@ -45,7 +45,7 @@ class TextTransforms(object):
     
     def __init__(self, language:str='portuguese'):
         self._language = language
-        self._nlp = stanza.Pipeline('pt')
+        self._nlp = stanza.Pipeline(self._language.title())
 
     
     
@@ -101,8 +101,5 @@ class TextTransforms(object):
 
         vectorizer =  DictVectorizer(sparse=True)
         vect_data = vectorizer.fit_transform(tokenized_tweets)
-
-        print(tokenized_tweets)
-        print(vect_data)
 
         return vect_data
