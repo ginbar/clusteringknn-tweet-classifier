@@ -73,7 +73,7 @@ class ClusteringPreprocessor(object):
 
             centroid = self._model.cluster_centers_[cluster_index]
 
-            cluster = BottomLevelCluster(cluster_index, cluster_text, "", "")
+            cluster = BottomLevelCluster(cluster_index, None, cluster_text, "", "")
             
             clusters.append(cluster)
         

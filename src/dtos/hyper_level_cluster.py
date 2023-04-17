@@ -1,7 +1,7 @@
 from numpy import ndarray
-from dtos.hyper_level_cluster import HyperLevelCluster
+from dtos.bottom_level_cluster import BottomLevelCluster
 
-class UpperLevelCluster(object):
+class HyperLevelCluster(object):
     """
     Representes a cluster created at the first phase of the method.
 
@@ -23,13 +23,15 @@ class UpperLevelCluster(object):
         self, 
         index:int, 
         data:ndarray,
-        children:list[HyperLevelCluster]=None
+        label:any,
+        children:list[BottomLevelCluster]=None
     ):
         self.index = index
         self.name = 'Cluster ' + str(index)
-        self.data = data 
+        self.data = data
+        self.labels = label
         self.children = children
 
 
-    def add_child(self, child:HyperLevelCluster) -> None:
+    def add_child(self, child:BottomLevelCluster) -> None:
         self.children.append(child)

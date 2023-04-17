@@ -1,3 +1,4 @@
+from numpy import ndarray
 
 class BottomLevelCluster(object):
     """
@@ -19,13 +20,16 @@ class BottomLevelCluster(object):
     """
     def __init__(
         self, 
-        index:int, 
-        text:str, 
-        lesser_dissimilar:str, 
-        most_dissimilar:str
+        index:int,
+        data:ndarray,
+        text:str=None, 
+        lesser_dissimilar:str=None, 
+        most_dissimilar:str=None
     ):
         self.index = index
         self.name = 'Cluster ' + str(index)
+        self.data = data
         self.text = text 
         self.most_dissimilar = most_dissimilar
         self.lesser_dissimilar = lesser_dissimilar
+        
