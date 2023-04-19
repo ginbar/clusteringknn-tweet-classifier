@@ -62,7 +62,7 @@ class ClusterTreeKNN(ClassifierMixin):
         y:ndarray, 
         clusters_masks:ndarray[int],
         centroids:ndarray,
-    ) -> ClusterTreeKNN:
+    ) -> None:
         """
         Fit the clustering k-nearest neighbors classifier from the training dataset. 
         It assumes that just valid clusters are passed as arguments.
