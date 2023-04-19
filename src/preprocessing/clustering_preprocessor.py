@@ -1,7 +1,9 @@
 import numpy as np
+from numpy import ndarray
 from sklearn.cluster import KMeans
 from preprocessing.text_transforms import TextTransforms
 from dtos.bottom_level_cluster import BottomLevelCluster
+from preprocessing.utils import silhouette_method
 
 
 
@@ -18,16 +20,16 @@ class ClusteringPreprocessor(object):
         Language of the data to be inputed.
     """
 
-    def __init__(self, n_clusters:int, language:str='portuguese'):
+    def __init__(self, n_clusters:int=None, language:str='portuguese'):
         super(ClusteringPreprocessor, self).__init__()
-        self._model = KMeans(n_clusters=n_clusters)
+        self._n_clusters = n_clusters
         self._transforms = TextTransforms(language)
         self._dataset = None
         self._tokenized_tweets = None
 
 
 
-    def fit(self, data: list[str]) -> None:
+    def fit(self, lemmatized_data: list[str]) -> None:
         """
         Generates the bottom layer clusters to be labeled.
         
@@ -41,9 +43,11 @@ class ClusteringPreprocessor(object):
             None : The method returns nothing.
         """
 
-        self._dataset = data
-        tokenized_tweets = self._transforms.vectorize(data)
-        print(tokenized_tweets)
+        n_clusters = silhouette_method(lemmatized_data) if self._n_clusters is None else self._n_clusters
+        self._model = KMeans(n_clusters=n_clusters)
+
+        self._dataset = lemmatized_data
+        tokenized_tweets = self._transforms.vectorize(lemmatized_data)
         self._model.fit(tokenized_tweets)
 
 
@@ -73,9 +77,13 @@ class ClusteringPreprocessor(object):
 
             centroid = self._model.cluster_centers_[cluster_index]
 
-            cluster = BottomLevelCluster(cluster_index, None, cluster_text, "", "")
+            cluster = BottomLevelCluster(cluster_index, None, centroid, cluster_text, "", "")
             
             clusters.append(cluster)
         
         return clusters
 
+
+
+    def get_clustering_mask(self):
+        return self._model.labels_

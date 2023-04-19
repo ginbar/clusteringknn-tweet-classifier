@@ -47,7 +47,12 @@ class TextTransforms(object):
         self._language = language
         self._nlp = stanza.Pipeline(self._language.title())
 
-    
+
+
+    def remove_inner_newline_chars(self, text:str) -> str:
+        return text.replace('\n', ' ') + '\n'
+
+
     
     def lemmatize(self, text:str) -> str:
         """

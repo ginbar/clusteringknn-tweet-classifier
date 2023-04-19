@@ -19,9 +19,11 @@ class ClusterTreeKNN(ClassifierMixin):
     
     Parameters
     ----------
-    initial_H_level_thereshould : float, default=0.5
-        The maximum distance between two samples for one to be considered
-        as in the neighborhood of th
+    initial_hyperlevel_threshold : float, default=0.5
+        Tthreshold for the radius of each cluster at the hypernode level.
+    
+    sigma_nearest_nodes : int, default=5
+        Number of nodes be searched in the upper level at prediction.
 
     References
     ----------
@@ -38,7 +40,7 @@ class ClusterTreeKNN(ClassifierMixin):
         n_neighbors:int=5, 
         metric:function=distance.euclidean,
         initial_hyperlevel_threshold:float=0.5,
-        classification_n_nearest_nodes:int=5
+        sigma_nearest_nodes:int=5
     ):
         super(ClusterTreeKNN, self).__init__()
 
@@ -46,7 +48,7 @@ class ClusterTreeKNN(ClassifierMixin):
         self._n_neighbors = n_neighbors
         self._metric = metric
         self._initial_hyperlevel_threshold = initial_hyperlevel_threshold
-        self._classification_n_nearest_nodes = classification_n_nearest_nodes
+        self._sigma_nearest_nodes = sigma_nearest_nodes
 
         self._Blevel = None
         self._Hlevel = None
@@ -60,7 +62,7 @@ class ClusterTreeKNN(ClassifierMixin):
         y:ndarray, 
         clusters_masks:ndarray[int],
         centroids:ndarray,
-    ) -> None:
+    ) -> ClusterTreeKNN:
         """
         Fit the clustering k-nearest neighbors classifier from the training dataset. 
         It assumes that just valid clusters are passed as arguments.
@@ -155,6 +157,9 @@ class ClusterTreeKNN(ClassifierMixin):
             # all nodes at the level P until a single node is
             # left in the resulting level.
 
+        return self
+
+
 
     def predict(self, sample: ndarray) -> ndarray:
         """
@@ -175,7 +180,7 @@ class ClusterTreeKNN(ClassifierMixin):
         # tree and choose the ς nearest nodes as a node
         # set Lx ;
         distances = np.array([cluster.data - sample for cluster in self._Plevel])
-        indexes = distances.argsort()[:self._classification_n_nearest_nodes]
+        indexes = distances.argsort()[:self._sigma_nearest_nodes]
         
         Lx = np.take(self._Plevel, indexes)
         
@@ -190,7 +195,7 @@ class ClusterTreeKNN(ClassifierMixin):
             subnodes = np.array([cluster.children for cluster in self._Plevel]).flatten()
             
             distances = np.array([cluster.data - sample for cluster in subnodes])
-            indexes = distances.argsort()[:self._classification_n_nearest_nodes]
+            indexes = distances.argsort()[:self._sigma_nearest_nodes]
             
             Lx = np.take(self._Plevel, indexes)
 

@@ -1,7 +1,6 @@
 from numpy import ndarray
-from dataclasses import astuple, dataclass
 
-class BottomLevelCluster(object):
+class UICluster(object):
     """
     Representes a cluster created at the first phase of the method.
 

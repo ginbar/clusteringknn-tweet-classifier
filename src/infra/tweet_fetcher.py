@@ -1,7 +1,7 @@
 import json
 import os
 import tweepy
-
+from config import HASHTAG_FILES_PATH
 from preprocessing.text_transforms import TextTransforms
 
 
@@ -11,7 +11,6 @@ with open("twitter_credentials.json", "r") as file:
 
 
 
-HASHTAG_FILES_PATH = 'data/datasets/hashtags/' 
 API_KEY = credentials['API_KEY']
 API_SECRET_KEY = credentials['API_SECRET_KEY']
 
@@ -20,6 +19,19 @@ API_SECRET_KEY = credentials['API_SECRET_KEY']
 auth = tweepy.AppAuthHandler(API_KEY, API_SECRET_KEY)
 api = tweepy.API(auth)
 transforms = TextTransforms()
+
+
+
+class TweetFetcher(object):
+
+    def __init__(self):
+        self._auth = tweepy.AppAuthHandler(API_KEY, API_SECRET_KEY)
+        self._api = tweepy.API(auth)
+
+
+    def get_cursor_for_hashtag(self, hashtag, max: int = 50) -> None:
+        return tweepy.Cursor(self._api.search, q=hashtag).items(max)
+
 
 
 def create_tweets_file_for_hashtag(hashtag: str, max: int = 50, path: str = None) -> None:

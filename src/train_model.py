@@ -1,38 +1,31 @@
-import math
-import numpy as np
+import argparse
 from model.cluster_tree_knn import ClusterTreeKNN
-from preprocessing.clustering_preprocessor import ClusteringPreprocessor
-from sklearn.datasets import make_blobs
-from numpy.random import randint
+from preprocessing.text_transforms import TextTransforms
+from preprocessing.utils import remove_invalid_clusters
+from io.preprocessing import read_preprocessing_results
+from io.dataset_reader import DatasetReader
 
-dataset_size = 500
-dataset_dimensionality = 3
-min_value = 0
-max_value = 10
-n_clusters = 20
-n_sentiment_labels = 3 # positiv/neutral/negativ
 
-# Fake clutering
-dataset, cluster_labels = make_blobs(n_samples=dataset_size,
-    n_features=dataset_dimensionality,
-    centers=n_clusters,
-    center_box=(min_value, max_value))
+argument_parser = argparse.ArgumentParser("Train model")
+argument_parser.add_argument("hashtag", help="Hashtag used to create the dataset", type=str, required=True)
+args = argument_parser.parse_args()
 
-test_sample = randint(min_value, high=max_value + 1, size=dataset_dimensionality)
+preprocessing = read_preprocessing_results(args.hashtag)
+train_dataset = DatasetReader(args.hashtag, 'train')
+transforms = TextTransforms()
 
-#TODO Refactor this class
-preprocessor = ClusteringPreprocessor(n_clusters)
 model = ClusterTreeKNN()
 
-# clusters = preprocessor.create_clusters(dataset, n_clusters, cluster_labels)
-clusters_masks = preprocessor.create_clusters_masks(dataset)
+train_lemmatized_data = train_dataset.get_lemmatized_tweets()
+train_vectorized_data = transforms.vectorize(train_lemmatized_data)
 
-# TODO Evaluate clusters. Word cloud UI goes here
+cleaned_train_data, cleaned_preprocessing = remove_invalid_clusters(train_vectorized_data, preprocessing)
 
-# Fake evaluation
-# clusters = clusters[:n_clusters - 4] 
-sentiment_labels = randint(0, high=n_sentiment_labels, size=len(n_clusters))
+model.fit(train_vectorized_data, cleaned_preprocessing.clustering_mask, cleaned_preprocessing.centroids)
 
-model.fit(dataset, clusters_masks, sentiment_labels)
+test_dataset = DatasetReader(args.hashtag, 'test')
 
-model.predict(test_sample)
+test_lemmatized_data = train_dataset.get_lemmatized_tweets()
+test_vectorized_data = transforms.vectorize(test_lemmatized_data)
+
+results = model.predict(test_vectorized_data)

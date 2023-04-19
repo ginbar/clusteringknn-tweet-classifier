@@ -1,7 +1,7 @@
 from numpy import ndarray
-from dataclasses import astuple, dataclass
+from dtos.bottom_level_cluster import BottomLevelCluster
 
-class BottomLevelCluster(object):
+class PreprocessingResults(object):
     """
     Representes a cluster created at the first phase of the method.
 
@@ -20,19 +20,11 @@ class BottomLevelCluster(object):
         Most dissimilar cluster entry(farthest from centroid).
     """
     def __init__(
-        self, 
-        index:int,
-        data:ndarray,
-        centroid:ndarray,
-        text:str=None, 
-        lesser_dissimilar:str=None, 
-        most_dissimilar:str=None
+        self,
+        centroids,
+        clustering_mask,
+        assigned_labels,
     ):
-        self.index = index
-        self.name = 'Cluster ' + str(index)
-        self.data = data
-        self.centroid = centroid
-        self.text = text 
-        self.most_dissimilar = most_dissimilar
-        self.lesser_dissimilar = lesser_dissimilar
-        
+        self.centroids = centroids
+        self.clustering_mask = clustering_mask
+        self.assigned_labels = assigned_labels
