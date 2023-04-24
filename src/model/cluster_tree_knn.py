@@ -87,13 +87,13 @@ class ClusterTreeKNN(ClassifierMixin):
         # with all template documents that are labeled
         # during the process described in Section 4.1.
         # These templates constitute a single level B ;
-        n_clusters = len(clusters_masks.unique())
+        n_clusters = len(np.unique(_clusters_masks))
         self._Blevel = [BottomLevelCluster(c, _X[c==_clusters_masks]) for c in range(n_clusters)]
         self._Hlevel = []
         self._Plevel = []
 
         for remaining_clusters in range(n_clusters, 0, -1):
-        
+            
             # Step 2. ∀Sl ∈ Ω, extract one of the most dissimilar
             # samples, for instance d1 , and compute the lo-
             # cal properties of each sample d1 = d: γ(d),
@@ -184,9 +184,7 @@ class ClusterTreeKNN(ClassifierMixin):
         
         Lx = np.take(self._Plevel, indexes)
         
-        continue_searching = True
-        
-        while continue_searching:
+        while all(not cluster is HyperLevelCluster for cluster in Lx):
 
             # Step 2. Compute the dissimilarity between x and
             # each subnode linked to the nodes in Lx , and
@@ -202,9 +200,6 @@ class ClusterTreeKNN(ClassifierMixin):
             # Step 3. Repeat Step 2 until reaching the hyperlevel
             # in the tree. When the searching stops at the
             # hyperlevel, Lx consists of ς hypernodes;
-            if any(cluster is HyperLevelCluster for cluster in Lx):
-                continue_searching = False
-
 
         # Step 4. Search Lx for the hypernode:
         # Lh = {Y |d(y, x) ≤ γ(d), y ∈ Lx }. 
@@ -213,7 +208,7 @@ class ClusterTreeKNN(ClassifierMixin):
         # If all nodes in Lh have the same class label, then this class is as-
         # sociated with x and the classification process
         # stops; otherwise, go to Step 5;
-        Lh_hyper_node_labels = np.array([c.label for c in Lh_hyper_nodes]).unique()
+        Lh_hyper_node_labels = np.unique(np.array([c.label for c in Lh_hyper_nodes]))
         
         if not len(Lh_hyper_node_labels) > 1:
             return Lh_hyper_node_labels[0]

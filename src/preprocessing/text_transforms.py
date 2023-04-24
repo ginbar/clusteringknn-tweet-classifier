@@ -1,5 +1,5 @@
 import re
-import stanza
+from stanza import Pipeline, DownloadMethod
 import numpy as np
 from nltk.tokenize import word_tokenize
 from sklearn.feature_extraction import DictVectorizer
@@ -16,17 +16,14 @@ from collections import Counter
 #     nltk.download('stopwords')
 #     nltk.download('punkt')
 
-
-# from nltk.corpus import stopwords
-
 ###################################
 
+from nltk.corpus import stopwords
 
 hashtag_rgx = re.compile('\#[\S]+', re.VERBOSE | re.IGNORECASE) 
 mentions_rgx = re.compile('@[\S]+', re.VERBOSE | re.IGNORECASE) 
 rt_rgx = re.compile('RT\s@[\S]+:', re.VERBOSE | re.IGNORECASE)
 url_rgx = re.compile('https?:\/\/.\S+', re.VERBOSE | re.IGNORECASE)
-
 
 
 
@@ -45,7 +42,7 @@ class TextTransforms(object):
     
     def __init__(self, language:str='portuguese'):
         self._language = language
-        self._nlp = stanza.Pipeline(self._language.title())
+        self._nlp = Pipeline(self._language.title(), download_method=DownloadMethod.REUSE_RESOURCES)
 
 
 
@@ -76,7 +73,7 @@ class TextTransforms(object):
         stripped = stripped.replace('\n', ' ')
 
         sentences = self._nlp(stripped).sentences
-        lemmatized = [w.lemma for s in sentences for w in s.words if w.lemma not in stopwords.words(self._language)]
+        lemmatized = [w.lemma for s in sentences for w in s.words if w.deprel != 'punct' and w.lemma not in stopwords.words(self._language)]
         
         if len(lemmatized) == 0:
             return None
@@ -102,7 +99,8 @@ class TextTransforms(object):
         #TODO Try to improve performance
 
         langsw = set(stopwords.words(self._language))
-        tokenized_tweets = (Counter(w for w in word_tokenize(t.lower(), self._language) if w.isalpha() and not w in langsw) for t in texts)
+        
+        tokenized_tweets = [Counter([w for w in word_tokenize(t.lower(), self._language) if w in langsw]) for t in texts]
 
         vectorizer =  DictVectorizer(sparse=True)
         vect_data = vectorizer.fit_transform(tokenized_tweets)

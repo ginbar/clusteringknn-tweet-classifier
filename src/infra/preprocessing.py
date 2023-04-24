@@ -18,8 +18,8 @@ def save_preprocessing_results(hashtag: str, preprocessing: PreprocessingResults
 
 def read_preprocessing_results(hashtag: str) -> PreprocessingResults:
     
-    centroids = np.load(create_file_path(hashtag, 'preprocessing', 'centr'))
-    clustering_mask = np.load(create_file_path(hashtag, 'preprocessing', 'mask'))
-    assigned_labels = np.load(create_file_path(hashtag, 'preprocessing', 'assig'))
+    centroids = np.load(create_file_path(hashtag, 'preprocessing', 'centr.npy'))
+    clustering_mask = np.load(create_file_path(hashtag, 'preprocessing', 'mask.npy'))
+    assigned_labels = np.load(create_file_path(hashtag, 'preprocessing', 'assig.npy'))
 
     return PreprocessingResults(centroids, clustering_mask, assigned_labels)

@@ -13,7 +13,7 @@ def silhouette_method(data:ndarray, min_n_clusters:int=3, max_n_clusters:int=15)
         coefficient = silhouette_score(data, labels, metric='euclidean')
         coefficients.append(coefficient)
 
-    return coefficients.index(max(coefficients))
+    return coefficients.index(max(coefficients)) + min_n_clusters
 
 
 

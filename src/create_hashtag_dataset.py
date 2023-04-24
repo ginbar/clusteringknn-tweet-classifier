@@ -13,29 +13,33 @@ argument_parser.add_argument("--language", help="Data language.", type=str, defa
 args = argument_parser.parse_args()
 
 hashtag = args.hashtag
-fetcher = TweetFetcher()
+
+fetcher = TweetFetcher(hashtag, page_size=10)
 transforms = TextTransforms(language=args.language)
 
-tweet_cursor = fetcher.get_cursor_for_hashtag(hashtag, max=args.maximum)
 
 with DatasetWriter(hashtag, 'train') as train_dataset, DatasetWriter(hashtag, 'test') as test_dataset:
     
-    max_train_dataset_size = args.maximum * args.train_percent
+    max_train_dataset_size = args.maximum * args.percentage
     counter = 0
 
-    for tweet in tweet_cursor:
+    while fetcher.can_fetch_more() and counter < args.maximum:
         
-        raw = transforms.remove_inner_newline_chars(tweet.text)
-        lemmatized = transforms.lemmatize(raw)
+        tweets = fetcher.next_page()
         
-        if lemmatized:
+        for tweet in tweets:
+
+            raw = transforms.remove_inner_newline_chars(tweet.text)
+            lemmatized = transforms.lemmatize(raw)
             
-            if counter <= max_train_dataset_size:
-                train_dataset.save_raw_tweet(raw)
-                train_dataset.save_lemmatized_tweet(lemmatized)
-            else:
-                test_dataset.save_raw_tweet(raw)
-                test_dataset.save_lemmatized_tweet(lemmatized)
-            
-            counter += 1
+            if lemmatized:
+                
+                if counter <= max_train_dataset_size:
+                    train_dataset.save_raw_tweet(raw)
+                    train_dataset.save_lemmatized_tweet(lemmatized)
+                else:
+                    test_dataset.save_raw_tweet(raw)
+                    test_dataset.save_lemmatized_tweet(lemmatized)
+                
+                counter += 1
             

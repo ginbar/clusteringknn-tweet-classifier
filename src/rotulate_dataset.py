@@ -17,7 +17,6 @@ reader = DatasetReader(args.hashtag, 'train')
 transforms = TextTransforms(language=args.language)
 
 lemmatized_dataset =  reader.get_lemmatized_tweets()
-tokenized_dataset = transforms.vectorize(lemmatized_dataset)
 
 preprocessor = ClusteringPreprocessor(language=args.language)
 preprocessor.fit(lemmatized_dataset)

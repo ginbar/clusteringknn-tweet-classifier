@@ -1,5 +1,4 @@
 import json
-import os
 import tweepy
 from preprocessing.text_transforms import TextTransforms
 from infra.utils import create_dataset_folder
@@ -9,28 +8,42 @@ credentials = None
 with open("twitter_credentials.json", "r") as file:
     credentials = json.load(file)
 
-
-
-API_KEY = credentials['API_KEY']
-API_SECRET_KEY = credentials['API_SECRET_KEY']
-
-
-
-auth = tweepy.AppAuthHandler(API_KEY, API_SECRET_KEY)
-api = tweepy.API(auth)
-transforms = TextTransforms()
+BEARER_TOKEN = credentials['BEARER_TOKEN']
 
 
 
 class TweetFetcher(object):
 
-    def __init__(self):
-        self._auth = tweepy.AppAuthHandler(API_KEY, API_SECRET_KEY)
-        self._api = tweepy.API(auth)
+
+    def __init__(self, hashtag, page_size=50):
+        self._client = tweepy.Client(BEARER_TOKEN)
+        self._hashtag = hashtag
+        self._page_size = page_size
+        self._next_token = None
+        self._first_page_fetched = False
 
 
-    def get_cursor_for_hashtag(self, hashtag, max: int = 50) -> None:
-        return tweepy.Cursor(self._api.search, q=hashtag).items(max)
+
+    def next_page(self) -> None:
+        response = self._client.search_recent_tweets(
+            query=f'#{self._hashtag}', 
+            max_results=self._page_size, 
+            next_token=self._next_token
+        )
+        
+        texts = [tweet for tweet in response.data]
+        
+        if 'next_token' in response.meta:
+            self._next_token = response.meta['next_token']
+        
+        self._first_page_fetched = True
+        
+        return texts
+
+
+
+    def can_fetch_more(self) -> bool:
+        return not self._first_page_fetched or not self._next_token is None
 
 
 
@@ -51,6 +64,8 @@ def create_tweets_file_for_hashtag(hashtag: str, max: int = 50, path: str = None
     ----------
         None : This function does not return anything. Instead, it saves the tweets in a file specified by the path parameter.
     """
+    
+    transforms = TextTransforms()
     
     create_dataset_folder(hashtag)
     
