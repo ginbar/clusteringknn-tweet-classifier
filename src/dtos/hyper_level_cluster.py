@@ -1,6 +1,9 @@
 from numpy import ndarray
 from dtos.bottom_level_cluster import BottomLevelCluster
+from dataclasses import astuple, dataclass
 
+
+@dataclass
 class HyperLevelCluster(object):
     """
     Representes a cluster created at the first phase of the method.
@@ -19,18 +22,10 @@ class HyperLevelCluster(object):
     most_dissimilar : str
         Most dissimilar cluster entry(farthest from centroid).
     """
-    def __init__(
-        self, 
-        index:int, 
-        data:ndarray,
-        label:any,
-        children:list[BottomLevelCluster]=None
-    ):
-        self.index = index
-        self.name = 'Cluster ' + str(index)
-        self.data = data
-        self.labels = label
-        self.children = children
+    index:int
+    data:ndarray
+    label:any
+    children:list[BottomLevelCluster]=None
 
 
     def add_child(self, child:BottomLevelCluster) -> None:

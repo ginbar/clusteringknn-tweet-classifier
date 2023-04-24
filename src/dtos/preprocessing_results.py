@@ -2,6 +2,7 @@ from numpy import ndarray
 from dataclasses import astuple, dataclass
 from dtos.bottom_level_cluster import BottomLevelCluster
 
+
 @dataclass
 class PreprocessingResults:
     """

@@ -2,17 +2,19 @@ import argparse
 from model.cluster_tree_knn import ClusterTreeKNN
 from preprocessing.text_transforms import TextTransforms
 from preprocessing.utils import remove_invalid_clusters
-from io.preprocessing import read_preprocessing_results
-from io.dataset_reader import DatasetReader
+from infra.preprocessing import read_preprocessing_results
+from infra.dataset_reader import DatasetReader
 
 
 argument_parser = argparse.ArgumentParser("Train model")
-argument_parser.add_argument("hashtag", help="Hashtag used to create the dataset", type=str, required=True)
+argument_parser.add_argument("hashtag", help="Hashtag used to create the dataset", type=str)
+argument_parser.add_argument("--language", help="Data language.", type=str, default='portuguese')
+
 args = argument_parser.parse_args()
 
 preprocessing = read_preprocessing_results(args.hashtag)
 train_dataset = DatasetReader(args.hashtag, 'train')
-transforms = TextTransforms()
+transforms = TextTransforms(language=args.language)
 
 model = ClusterTreeKNN()
 

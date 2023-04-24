@@ -8,16 +8,16 @@ from collections import Counter
 
 ########### Downloads NLTK Corpuses
 
-import nltk
-#TODO Improve this method
-try:
-    nltk.find('stopwords')
-except LookupError:
-    nltk.download('stopwords')
-    nltk.download('punkt')
+# import nltk
+# #TODO Improve this method
+# try:
+#     nltk.find('stopwords')
+# except LookupError:
+#     nltk.download('stopwords')
+#     nltk.download('punkt')
 
 
-from nltk.corpus import stopwords
+# from nltk.corpus import stopwords
 
 ###################################
 

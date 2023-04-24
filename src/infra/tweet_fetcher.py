@@ -1,8 +1,8 @@
 import json
 import os
 import tweepy
-from config import HASHTAG_FILES_PATH
 from preprocessing.text_transforms import TextTransforms
+from infra.utils import create_dataset_folder
 
 
 credentials = None
@@ -52,14 +52,7 @@ def create_tweets_file_for_hashtag(hashtag: str, max: int = 50, path: str = None
         None : This function does not return anything. Instead, it saves the tweets in a file specified by the path parameter.
     """
     
-    if path is None:
-        if not os.path.exists(HASHTAG_FILES_PATH):
-            os.makedirs(HASHTAG_FILES_PATH)
-        
-        path = HASHTAG_FILES_PATH + hashtag + '/'
-    
-        if not os.path.exists(path):
-            os.makedirs(path)
+    create_dataset_folder(hashtag)
     
     raw_tweets_file_path = f'{path}/{hashtag}'
     lemmatized_tweets_file_path = f'{path}/{hashtag}.lem'

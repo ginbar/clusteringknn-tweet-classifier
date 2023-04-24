@@ -38,7 +38,7 @@ class ClusterTreeKNN(ClassifierMixin):
     def __init__(
         self,
         n_neighbors:int=5, 
-        metric:function=distance.euclidean,
+        metric:callable=distance.euclidean,
         initial_hyperlevel_threshold:float=0.5,
         sigma_nearest_nodes:int=5
     ):
