@@ -98,9 +98,7 @@ class TextTransforms(object):
 
         #TODO Try to improve performance
 
-        langsw = set(stopwords.words(self._language))
-        
-        tokenized_tweets = [Counter([w for w in word_tokenize(t.lower(), self._language) if w in langsw]) for t in texts]
+        tokenized_tweets = [Counter([w for w in word_tokenize(t.lower(), self._language)]) for t in texts]
 
         vectorizer =  DictVectorizer(sparse=True)
         vect_data = vectorizer.fit_transform(tokenized_tweets)

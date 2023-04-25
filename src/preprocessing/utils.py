@@ -23,15 +23,23 @@ def remove_invalid_clusters(data:ndarray, preprocessing_results:PreprocessingRes
     
     invalid_clusters_indexes = []
 
-    for index, (most_dis_label, lesser_dis_label) in enumerate(assigned_labels):
-        if most_dis_label == lesser_dis_label:
+    for index, (most_dis_label, lesser_dis_label) in enumerate(assigned_labels.T):
+        if most_dis_label != lesser_dis_label:
             invalid_clusters_indexes.append(index)
     
+    centroids = preprocessing_results.centroids
     clustering_mask = preprocessing_results.clustering_mask
-    invalid_mask = invalid_clusters_indexes == clustering_mask
+    assigned_labels = preprocessing_results.assigned_labels
 
-    cleaned_data = data[invalid_mask]
-    clenead_mask = preprocessing_results.clustering_mask[invalid_mask]
-    cleaned_centroids = preprocessing_results.centroids[invalid_mask]
+    invalid_mask = clustering_mask == invalid_clusters_indexes
 
-    return cleaned_data, PreprocessingResults(cleaned_centroids, clenead_mask, cleaned_centroids)
+    if len(invalid_clusters_indexes) > 0:
+
+        invalid_mask = clustering_mask == invalid_clusters_indexes
+        
+        data = data[invalid_mask]
+        centroids = centroids[invalid_mask]
+        clustering_mask = clustering_mask[invalid_mask]
+        assigned_labels = assigned_labels[invalid_mask]
+        
+    return data, PreprocessingResults(centroids, clustering_mask, assigned_labels)
