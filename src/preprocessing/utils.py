@@ -1,3 +1,4 @@
+import numpy as np
 from numpy import ndarray
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
@@ -43,3 +44,13 @@ def remove_invalid_clusters(data:ndarray, preprocessing_results:PreprocessingRes
         assigned_labels = assigned_labels[invalid_mask]
         
     return data, PreprocessingResults(centroids, clustering_mask, assigned_labels)
+    
+
+
+def create_labeling(preprocessing:PreprocessingResults):
+    y = np.zeros(preprocessing.clustering_mask.shape[0])
+
+    for index, (label, _) in enumerate(preprocessing.assigned_labels.T):
+        np.putmask(y, preprocessing.clustering_mask == index, label)
+    
+    return y

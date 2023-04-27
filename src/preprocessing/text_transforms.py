@@ -5,6 +5,7 @@ from nltk.tokenize import word_tokenize
 from sklearn.feature_extraction import DictVectorizer
 from scipy.sparse import csr_matrix
 from collections import Counter
+from sklearn.feature_extraction.text import CountVectorizer
 
 ########### Downloads NLTK Corpuses
 
@@ -73,7 +74,7 @@ class TextTransforms(object):
         stripped = stripped.replace('\n', ' ')
 
         sentences = self._nlp(stripped).sentences
-        lemmatized = [w.lemma for s in sentences for w in s.words if w.deprel != 'punct' and w.lemma not in stopwords.words(self._language)]
+        lemmatized = [w.lemma.lower() for s in sentences for w in s.words if w.deprel != 'punct' and w.lemma not in stopwords.words(self._language)]
         
         if len(lemmatized) == 0:
             return None
@@ -98,9 +99,12 @@ class TextTransforms(object):
 
         #TODO Try to improve performance
 
-        tokenized_tweets = [Counter([w for w in word_tokenize(t.lower(), self._language)]) for t in texts]
+        # tokenized_tweets = [Counter([w for w in word_tokenize(t.lower(), self._language)]) for t in texts]
 
-        vectorizer =  DictVectorizer(sparse=True)
-        vect_data = vectorizer.fit_transform(tokenized_tweets)
+        # vectorizer =  DictVectorizer(sparse=True)
+        # vect_data = vectorizer.fit_transform(tokenized_tweets)
 
-        return vect_data
+        # return vect_data
+        vectorizer = CountVectorizer()
+        X = vectorizer.fit_transform(texts)
+        return X.toarray()

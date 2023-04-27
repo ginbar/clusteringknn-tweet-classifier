@@ -2,10 +2,11 @@ import numpy as np
 from numpy import ndarray
 from sklearn.base import ClassifierMixin
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.cluster import KMeans, AgglomerativeClustering
+from sklearn.cluster import KMeans, AgglomerativeClustering, DBSCAN
 from scipy.cluster.hierarchy import dendrogram, linkage, ClusterNode
 from scipy.spatial import distance
 from scipy.spatial import KDTree
+import scipy
 
 from dtos.bottom_level_cluster import BottomLevelCluster
 from dtos.hyper_level_cluster import HyperLevelCluster 
@@ -80,80 +81,100 @@ class ClusterTreeKNN(ClassifierMixin):
             self : The fitted clustering k-nearest neighbors classifier.
         """
         
-        _X = X[:]
-        _clusters_masks = clusters_masks[:]
-
-        # Step 1. Initialize the bottom level of the cluster tree
+        # Step 1. 
+        # Initialize the bottom level of the cluster tree
         # with all template documents that are labeled
         # during the process described in Section 4.1.
-        # These templates constitute a single level B ;
-        n_clusters = len(np.unique(_clusters_masks))
-        self._Blevel = [BottomLevelCluster(c, _X[c==_clusters_masks]) for c in range(n_clusters)]
+        # These templates constitute a single level B;
+        n_clusters = len(np.unique(clusters_masks))
+        self._Blevel = [BottomLevelCluster(i, X[i == clusters_masks], centroids[i]) for i in range(n_clusters)]
         self._Hlevel = []
         self._Plevel = []
 
-        for remaining_clusters in range(n_clusters, 0, -1):
+        X_length = X.shape[0]
+
+        remaining_clusters = [i for i in range(n_clusters)]
+        
+        while len(remaining_clusters) > 0:
             
-            # Step 2. ∀Sl ∈ Ω, extract one of the most dissimilar
+            # Step 2. 
+            # ∀Sl ∈ Ω, extract one of the most dissimilar
             # samples, for instance d1 , and compute the lo-
             # cal properties of each sample d1 = d: γ(d),
             # ψ(d) and ℓ(d). Then, rank all clusters Sl in
             # descending order of ℓ(.);
-            data_length = len(_X)
-
-            clusters_data = np.array([_X[c==_clusters_masks] for c in len(remaining_clusters)])
-            most_dissimilars = np.array([clusters_data[c, (clusters_data[c] - centroids[c]).max()] for c in len(remaining_clusters)])
-            most_dissimilars_indexes = np.array([_X.where(_X == d) for d in most_dissimilars])
-
-            dissimilarities = np.array([self._metric(i, j) for i in X for j in X])
             
-            gamma_d = np.array([dissimilarities[i][y[i] != y[j]].min() for j in range(data_length) for i in most_dissimilars_indexes])
-            psi_d = np.array([_X[y[i] == y[j] and dissimilarities[i, j] < gamma_d[k]] for j in range(data_length) for k, i in enumerate(most_dissimilars_indexes)])
-            lambda_d = np.array([len(psi) for psi in psi_d])
+            remaining_clusters_mask = np.isin(clusters_masks, remaining_clusters)
+
+            _clusters_masks = clusters_masks[remaining_clusters_mask]
+            _X = X[remaining_clusters_mask]
+            _y = y[remaining_clusters_mask]
+
+            X_length = _X.shape[0]
+            most_dissimilars = np.array([self._Blevel[c].data[np.linalg.norm(self._Blevel[c].data - centroids[c], axis=1).argmax()] for c in remaining_clusters])
+
+            most_dissimilars_indexes = np.array([np.where((_X == m).all(axis=1))[0][0] for m in most_dissimilars])
+            dissimilarities = np.array([np.linalg.norm(i - j) for i in _X for j in _X]).reshape((X_length, X_length))
             
-            # Step 3. Take the sample d1 with the biggest ℓ(.) as
-            # a hypernode, and let all samples of ψ(d1 ) be
-            # nodes at the bottom level of the tree, B . Then,
-            # remove d1 and all samples in ψ(d1 ) from the
-            # original dataset, and set up a link between d1
-            # and each pattern of ψ(d1 ) in B ;
-            new_hyper_node_index = lambda_d.argmax()
+            if np.unique(_y).shape[0] > 1:
+                gamma_d = np.array([dissimilarities[i][_y[i] != _y].min() for i in most_dissimilars_indexes])
+                psi_d = [_X[(_y[i] == _y) & (dissimilarities[i] < gamma_d[k])] for k, i in enumerate(most_dissimilars_indexes)]
+                lambda_d = np.array([len(psi) for psi in psi_d])
+                new_hyper_node_index = lambda_d.argmax()
+                
+                # Step 3. 
+                # Take the sample d1 with the biggest ℓ(.) as
+                # a hypernode, and let all samples of ψ(d1 ) be
+                # nodes at the bottom level of the tree, B . Then,
+                # remove d1 and all samples in ψ(d1 ) from the
+                # original dataset, and set up a link between d1
+                # and each pattern of ψ(d1 ) in B ;
 
-            #TODO Improve this
-            new_hyper_node = HyperLevelCluster(len(self._Hlevel), most_dissimilars[new_hyper_node_index], y[most_dissimilars_indexes[new_hyper_node_index]])
+                new_hyper_node = HyperLevelCluster(len(self._Hlevel), most_dissimilars[new_hyper_node_index], _y[most_dissimilars_indexes[new_hyper_node_index]])
 
-            self._Hlevel.append(new_hyper_node)
-
-            for new_bottom_level_data in psi_d:
-                new_bottom_level_node = BottomLevelCluster(len(self._Blevel), new_bottom_level_data) 
-                self._Blevel.append(new_bottom_level_node)
-                cluster_to_be_removed = y[most_dissimilars_indexes[new_hyper_node_index]]
-                _X.delete(_X == cluster_to_be_removed)
-                _clusters_masks.delete(_clusters_masks == cluster_to_be_removed)
+                self._Hlevel.append(new_hyper_node)
+                
+                new_bottom_level_node = BottomLevelCluster(len(self._Blevel), psi_d[new_hyper_node_index], None)
+                cluster_to_be_removed = _clusters_masks[most_dissimilars_indexes[new_hyper_node_index]]
+                
+                remaining_clusters.remove(cluster_to_be_removed)
                 new_hyper_node.add_child(new_bottom_level_node)
+                
+                self._Blevel.append(new_bottom_level_node)
+            else:
+                remaining_clusters.pop()
 
-            # Step 4. Repeat Step 2 and Step 3 until the Ω set be-
+            # Step 4. 
+            # Repeat Step 2 and Step 3 until the Ω set be-
             # comes empty. At this point, the cluster tree is
             # configured with a hyperlevel, H , and a bottom level, B ;
         
-        # TODO ????
-        # Step 5. Select a threshold η and cluster all templates
+        # Step 5. 
+        # Select a threshold η and cluster all templates
         # in H so that the radius of each cluster is less
         # than or equal to η. All cluster centers form
         # another level of the cluster tree, P ;
         hyperlevel_threshold = self._initial_hyperlevel_threshold
-        hyperlevel_data = np.array([cluster.data for cluster in self._Hlevel]) 
 
-        while len(self._Hlevel) > 1:
-            hyperlevel_clustering = KMeans()
-            hyperlevel_clustering.fit(hyperlevel_data)
-            
-            self._Plevel = [UpperLevelCluster(i, centroind) for i, centroind in enumerate(hyperlevel_clustering.cluster_centers_)]
-            
-            # TODO Apply AgglomerativeClustering instead?
+        self._Plevel = self._Hlevel
 
+        while len(self._Plevel) > 1:
+            hyperlevel_data = np.array([cluster.data for cluster in self._Plevel]) 
+            new_P_level = None
+            
+            if hyperlevel_data.shape[0] == 2:
+
+                hyperlevel_clustering = DBSCAN(eps=self._initial_hyperlevel_threshold, min_samples=2)
+                hyperlevel_clustering.fit(hyperlevel_data)
+                
+                new_P_level = [UpperLevelCluster(i, hyperlevel_data[centr_ind]) for i, centr_ind in enumerate(np.unique(hyperlevel_clustering.core_sample_indices_))]
+            else:
+                new_P_level = [UpperLevelCluster(i, hyperlevel_data[i]) for i in range(2)]
+
+            self._Plevel = new_P_level
             hyperlevel_threshold = hyperlevel_threshold + 0.5
-            # Step 6. Increase the threshold η and repeat Step 5 for
+            # Step 6. 
+            # Increase the threshold η and repeat Step 5 for
             # all nodes at the level P until a single node is
             # left in the resulting level.
 
@@ -162,6 +183,13 @@ class ClusterTreeKNN(ClassifierMixin):
 
 
     def predict(self, sample: ndarray) -> ndarray:
+        if len(sample.shape) > 1:
+            return np.array([self._predict(_sample) for _sample in sample])
+        return self._predict(sample)
+
+
+
+    def _predict(self, sample: ndarray) -> ndarray:
         """
         Predict the class labels for the provided data.
         
@@ -175,7 +203,8 @@ class ClusterTreeKNN(ClassifierMixin):
             ndarray : Class labels for each data sample.
         """
         
-        # Step 1. First, we compute the dissimilarity between x
+        # Step 1. 
+        # First, we compute the dissimilarity between x
         # and each node at the top level of the cluster
         # tree and choose the ς nearest nodes as a node
         # set Lx ;
@@ -183,10 +212,11 @@ class ClusterTreeKNN(ClassifierMixin):
         indexes = distances.argsort()[:self._sigma_nearest_nodes]
         
         Lx = np.take(self._Plevel, indexes)
-        
+        print(Lx)
         while all(not cluster is HyperLevelCluster for cluster in Lx):
 
-            # Step 2. Compute the dissimilarity between x and
+            # Step 2. 
+            # Compute the dissimilarity between x and
             # each subnode linked to the nodes in Lx , and
             # again choose the ς nearest nodes, which are
             # used to update the node set Lx ;
@@ -197,11 +227,13 @@ class ClusterTreeKNN(ClassifierMixin):
             
             Lx = np.take(self._Plevel, indexes)
 
-            # Step 3. Repeat Step 2 until reaching the hyperlevel
+            # Step 3. 
+            # Repeat Step 2 until reaching the hyperlevel
             # in the tree. When the searching stops at the
             # hyperlevel, Lx consists of ς hypernodes;
 
-        # Step 4. Search Lx for the hypernode:
+        # Step 4. 
+        # Search Lx for the hypernode:
         # Lh = {Y |d(y, x) ≤ γ(d), y ∈ Lx }. 
         Lh_hyper_nodes = None #TODO ????
         
@@ -213,7 +245,8 @@ class ClusterTreeKNN(ClassifierMixin):
         if not len(Lh_hyper_node_labels) > 1:
             return Lh_hyper_node_labels[0]
         else:
-            # Step 5. Compute the dissimilarity between x and
+            # Step 5. 
+            # Compute the dissimilarity between x and
             # every subnode linked to the nodes in Lx , and
             # choose the k nearest samples. Then, take a
             # majority voting among the k nearest samples

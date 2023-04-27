@@ -1,9 +1,10 @@
 import argparse
 from model.cluster_tree_knn import ClusterTreeKNN
 from preprocessing.text_transforms import TextTransforms
-from preprocessing.utils import remove_invalid_clusters
+from preprocessing.utils import remove_invalid_clusters, create_labeling
 from infra.preprocessing import read_preprocessing_results
 from infra.dataset_reader import DatasetReader
+from infra.results import save_results
 
 
 argument_parser = argparse.ArgumentParser("Train model")
@@ -22,10 +23,11 @@ train_lemmatized_data = train_dataset.get_lemmatized_tweets()
 train_vectorized_data = transforms.vectorize(train_lemmatized_data)
 
 cleaned_train_data, cleaned_preprocessing = remove_invalid_clusters(train_vectorized_data, preprocessing)
+y = create_labeling(preprocessing)
 
 model.fit(
     train_vectorized_data, 
-    cleaned_preprocessing.assigned_labels,
+    y,
     cleaned_preprocessing.clustering_mask, 
     cleaned_preprocessing.centroids
 )
@@ -36,3 +38,5 @@ test_lemmatized_data = train_dataset.get_lemmatized_tweets()
 test_vectorized_data = transforms.vectorize(test_lemmatized_data)
 
 results = model.predict(test_vectorized_data)
+
+save_results(results)

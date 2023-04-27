@@ -47,40 +47,40 @@ class TweetFetcher(object):
 
 
 
-def create_tweets_file_for_hashtag(hashtag: str, max: int = 50, path: str = None) -> None:
-    """
-    Creates a file containing tweets that contain a specified hashtag.
+# def create_tweets_file_for_hashtag(hashtag: str, max: int = 50, path: str = None) -> None:
+#     """
+#     Creates a file containing tweets that contain a specified hashtag.
     
-    Parameters
-    ----------
-        hashtag : str 
-            A string that represents the hashtag to search for.
-        max : int 
-            An integer that represents the maximum number of tweets to retrieve (default is 50).
-        path : str 
-            A string that represents the file path where the tweets will be saved.
+#     Parameters
+#     ----------
+#         hashtag : str 
+#             A string that represents the hashtag to search for.
+#         max : int 
+#             An integer that represents the maximum number of tweets to retrieve (default is 50).
+#         path : str 
+#             A string that represents the file path where the tweets will be saved.
 
-    Returns
-    ----------
-        None : This function does not return anything. Instead, it saves the tweets in a file specified by the path parameter.
-    """
+#     Returns
+#     ----------
+#         None : This function does not return anything. Instead, it saves the tweets in a file specified by the path parameter.
+#     """
     
-    transforms = TextTransforms()
+#     transforms = TextTransforms()
     
-    create_dataset_folder(hashtag)
+#     create_dataset_folder(hashtag)
     
-    raw_tweets_file_path = f'{path}/{hashtag}'
-    lemmatized_tweets_file_path = f'{path}/{hashtag}.lem'
+#     raw_tweets_file_path = f'{path}/{hashtag}'
+#     lemmatized_tweets_file_path = f'{path}/{hashtag}.lem'
 
-    with open(raw_tweets_file_path, 'a+') as raw_tweets_file, open(lemmatized_tweets_file_path, 'a+') as lemmatized_tweets_file:
+#     with open(raw_tweets_file_path, 'a+') as raw_tweets_file, open(lemmatized_tweets_file_path, 'a+') as lemmatized_tweets_file:
         
-        tweets = tweepy.Cursor(api.search, q=hashtag).items(max)
+#         tweets = tweepy.Cursor(api.search, q=hashtag).items(max)
         
-        for tweet in tweets:
-            raw = tweet.text.replace('\n', ' ') + '\n'
-            lemmatized = transforms.lemmatize(raw)
+#         for tweet in tweets:
+#             raw = tweet.text.replace('\n', ' ') + '\n'
+#             lemmatized = transforms.lemmatize(raw)
             
-            if lemmatized:
-                raw_tweets_file.write(raw)
-                lemmatized_tweets_file.write(lemmatized)
+#             if lemmatized:
+#                 raw_tweets_file.write(raw)
+#                 lemmatized_tweets_file.write(lemmatized)
 
