@@ -38,4 +38,4 @@ def create_file_path(hashtag, folder=None, suffix=None):
     if not suffix is None:
         path += f'.{suffix}'
     
-    return f'{HASHTAG_FILES_PATH}/{hashtag}/{folder}/{hashtag}.{suffix}'
+    return path

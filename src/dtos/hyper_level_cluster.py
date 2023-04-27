@@ -31,5 +31,4 @@ class HyperLevelCluster(object):
     def add_child(self, child:BottomLevelCluster) -> None:
         if self.children is None:
             self.children = []
-            
         self.children.append(child)

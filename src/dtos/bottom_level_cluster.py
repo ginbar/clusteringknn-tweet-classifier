@@ -23,6 +23,7 @@ class BottomLevelCluster(object):
     """
     index:int
     data:ndarray
+    labels:ndarray
     centroid:ndarray
     text:str=None
     lesser_dissimilar:str=None

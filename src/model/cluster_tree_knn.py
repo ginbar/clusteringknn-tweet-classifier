@@ -80,14 +80,14 @@ class ClusterTreeKNN(ClassifierMixin):
         ----------
             self : The fitted clustering k-nearest neighbors classifier.
         """
-        
+
         # Step 1. 
         # Initialize the bottom level of the cluster tree
         # with all template documents that are labeled
         # during the process described in Section 4.1.
         # These templates constitute a single level B;
         n_clusters = len(np.unique(clusters_masks))
-        self._Blevel = [BottomLevelCluster(i, X[i == clusters_masks], centroids[i]) for i in range(n_clusters)]
+        self._Blevel = [BottomLevelCluster(i, X[i == clusters_masks], y[i == clusters_masks], centroids[i]) for i in range(n_clusters)]
         self._Hlevel = []
         self._Plevel = []
 
@@ -119,6 +119,7 @@ class ClusterTreeKNN(ClassifierMixin):
             if np.unique(_y).shape[0] > 1:
                 gamma_d = np.array([dissimilarities[i][_y[i] != _y].min() for i in most_dissimilars_indexes])
                 psi_d = [_X[(_y[i] == _y) & (dissimilarities[i] < gamma_d[k])] for k, i in enumerate(most_dissimilars_indexes)]
+                psi_d_labels = [_y[(_y[i] == _y) & (dissimilarities[i] < gamma_d[k])] for k, i in enumerate(most_dissimilars_indexes)]
                 lambda_d = np.array([len(psi) for psi in psi_d])
                 new_hyper_node_index = lambda_d.argmax()
                 
@@ -133,8 +134,12 @@ class ClusterTreeKNN(ClassifierMixin):
                 new_hyper_node = HyperLevelCluster(len(self._Hlevel), most_dissimilars[new_hyper_node_index], _y[most_dissimilars_indexes[new_hyper_node_index]])
 
                 self._Hlevel.append(new_hyper_node)
+
+                new_bottol_level_data = psi_d[new_hyper_node_index]
+                new_bottom_level_labels = psi_d_labels[new_hyper_node_index]
+
+                new_bottom_level_node = BottomLevelCluster(len(self._Blevel), new_bottol_level_data, new_bottom_level_labels, None)
                 
-                new_bottom_level_node = BottomLevelCluster(len(self._Blevel), psi_d[new_hyper_node_index], None)
                 cluster_to_be_removed = _clusters_masks[most_dissimilars_indexes[new_hyper_node_index]]
                 
                 remaining_clusters.remove(cluster_to_be_removed)
@@ -163,14 +168,35 @@ class ClusterTreeKNN(ClassifierMixin):
             new_P_level = None
             
             if hyperlevel_data.shape[0] == 2:
+                upper_node = UpperLevelCluster(len(self._Plevel), hyperlevel_data)
+                
+                for child in self._Plevel:
+                    upper_node.add_child(child)
 
+                new_P_level = [upper_node]
+            else:
                 hyperlevel_clustering = DBSCAN(eps=self._initial_hyperlevel_threshold, min_samples=2)
                 hyperlevel_clustering.fit(hyperlevel_data)
                 
-                new_P_level = [UpperLevelCluster(i, hyperlevel_data[centr_ind]) for i, centr_ind in enumerate(np.unique(hyperlevel_clustering.core_sample_indices_))]
-            else:
-                new_P_level = [UpperLevelCluster(i, hyperlevel_data[i]) for i in range(2)]
+                if np.unique(hyperlevel_clustering.labels_).shape[0] > 1:
+                    new_P_level = []
+                    core_indeces = hyperlevel_clustering.core_sample_indices_
 
+                    for i, centr_ind in enumerate(core_indeces):
+                        upper_node = UpperLevelCluster(i, hyperlevel_data[centr_ind])
+                        
+                        for child in self._Plevel:
+                            upper_node.add_child(child)
+                        
+                        new_P_level.append(upper_node)
+                else:
+                    upper_node = UpperLevelCluster(len(self._Plevel), hyperlevel_data)
+                    
+                    for child in self._Plevel:
+                        upper_node.add_child(child)
+
+                    new_P_level = [upper_node]
+            
             self._Plevel = new_P_level
             hyperlevel_threshold = hyperlevel_threshold + 0.5
             # Step 6. 
@@ -183,7 +209,7 @@ class ClusterTreeKNN(ClassifierMixin):
 
 
     def predict(self, sample: ndarray) -> ndarray:
-        if len(sample.shape) > 1:
+        if sample.shape[0] > 1:
             return np.array([self._predict(_sample) for _sample in sample])
         return self._predict(sample)
 
@@ -208,24 +234,23 @@ class ClusterTreeKNN(ClassifierMixin):
         # and each node at the top level of the cluster
         # tree and choose the ς nearest nodes as a node
         # set Lx ;
-        distances = np.array([cluster.data - sample for cluster in self._Plevel])
+        distances = np.array([np.linalg.norm(cluster.data - sample) for cluster in self._Plevel])
         indexes = distances.argsort()[:self._sigma_nearest_nodes]
         
         Lx = np.take(self._Plevel, indexes)
-        print(Lx)
-        while all(not cluster is HyperLevelCluster for cluster in Lx):
+
+        while not any(isinstance(cluster, HyperLevelCluster) for cluster in Lx):
 
             # Step 2. 
             # Compute the dissimilarity between x and
             # each subnode linked to the nodes in Lx , and
             # again choose the ς nearest nodes, which are
             # used to update the node set Lx ;
-            subnodes = np.array([cluster.children for cluster in self._Plevel]).flatten()
-            
-            distances = np.array([cluster.data - sample for cluster in subnodes])
+            subnodes = np.array([cluster.children for cluster in Lx]).flatten()
+            distances = np.array([np.linalg.norm(cluster.data - sample) for cluster in subnodes])
             indexes = distances.argsort()[:self._sigma_nearest_nodes]
-            
-            Lx = np.take(self._Plevel, indexes)
+
+            Lx = np.take(subnodes, indexes)
 
             # Step 3. 
             # Repeat Step 2 until reaching the hyperlevel
@@ -235,7 +260,7 @@ class ClusterTreeKNN(ClassifierMixin):
         # Step 4. 
         # Search Lx for the hypernode:
         # Lh = {Y |d(y, x) ≤ γ(d), y ∈ Lx }. 
-        Lh_hyper_nodes = None #TODO ????
+        Lh_hyper_nodes = [node for node in Lx] #TODO implement conditions
         
         # If all nodes in Lh have the same class label, then this class is as-
         # sociated with x and the classification process
@@ -251,12 +276,20 @@ class ClusterTreeKNN(ClassifierMixin):
             # choose the k nearest samples. Then, take a
             # majority voting among the k nearest samples
             # to determine the class label for x.
-            bottom_level_data = np.array([c.data for c in Lh_hyper_nodes])
-            bottom_level_label = np.array([c.label for c in Lh_hyper_nodes])
+            bottom_level_data = []
+            bottom_level_label = []
 
+            for node in Lh_hyper_nodes:
+                for child in node.children:
+                    bottom_level_data.append(child.data)
+                    bottom_level_label.append(child.labels)
+
+            bottom_level_data = np.concatenate(bottom_level_data)
+            bottom_level_label = np.concatenate(bottom_level_label)
+            
             knn = KNeighborsClassifier(n_neighbors=self._n_neighbors)
-
+            
             knn.fit(bottom_level_data, bottom_level_label)
 
-            return knn.predict(sample)
+            return knn.predict([sample])[0]
             

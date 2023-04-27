@@ -17,7 +17,7 @@ preprocessing = read_preprocessing_results(args.hashtag)
 train_dataset = DatasetReader(args.hashtag, 'train')
 transforms = TextTransforms(language=args.language)
 
-model = ClusterTreeKNN()
+model = ClusterTreeKNN(initial_hyperlevel_threshold=5)
 
 train_lemmatized_data = train_dataset.get_lemmatized_tweets()
 train_vectorized_data = transforms.vectorize(train_lemmatized_data)
@@ -39,4 +39,4 @@ test_vectorized_data = transforms.vectorize(test_lemmatized_data)
 
 results = model.predict(test_vectorized_data)
 
-save_results(results)
+save_results(args.hashtag, results)

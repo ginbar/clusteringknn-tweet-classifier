@@ -24,9 +24,11 @@ class UpperLevelCluster(object):
     """
     index:int 
     data:ndarray
-    children:list[HyperLevelCluster]=None
+    children:list=None
 
 
-    def add_child(self, child:HyperLevelCluster) -> None:
+    def add_child(self, child) -> None:
+        if self.children is None:
+            self.children = list()
         self.children.append(child)
         
