@@ -1,4 +1,5 @@
 import argparse
+import numpy as np
 from infra.dataset_reader import DatasetReader
 from ui.word_cloud_ui import WordCloudUI
 from preprocessing.clustering_preprocessor import ClusteringPreprocessor
@@ -9,17 +10,25 @@ from infra.preprocessing import save_preprocessing_results
 
 argument_parser = argparse.ArgumentParser("Rotulate dataset")
 argument_parser.add_argument("hashtag", help="Hashtag used to create the dataset", type=str)
+argument_parser.add_argument("--percentage", help="Percentage of the data to be used for training.", type=float, default=0.8)
 argument_parser.add_argument("--language", help="Data language.", type=str, default='portuguese')
 
 args = argument_parser.parse_args()
 
-reader = DatasetReader(args.hashtag, 'train')
 transforms = TextTransforms(language=args.language)
 
-lemmatized_dataset =  reader.get_lemmatized_tweets()
+train_dataset = DatasetReader(args.hashtag, 'train')
+test_dataset = DatasetReader(args.hashtag, 'test')
+
+train_lemmatized_data = train_dataset.get_lemmatized_tweets()
+test_lemmatized_data = test_dataset.get_lemmatized_tweets()
+
+vectorized_data = transforms.vectorize(np.concatenate([train_lemmatized_data, test_lemmatized_data]))
+
+train_vectorized_data = vectorized_data[:len(train_lemmatized_data)]
 
 preprocessor = ClusteringPreprocessor(language=args.language)
-preprocessor.fit(lemmatized_dataset)
+preprocessor.fit(train_vectorized_data, train_lemmatized_data)
 
 clusters = preprocessor.create_clusters()
 

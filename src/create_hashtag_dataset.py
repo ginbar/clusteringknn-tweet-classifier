@@ -26,12 +26,12 @@ with DatasetWriter(hashtag, 'train') as train_dataset, DatasetWriter(hashtag, 't
     while fetcher.can_fetch_more() and counter < args.maximum:
         
         tweets = fetcher.next_page()
-        print(tweets)
+
         for tweet in tweets:
 
             raw = transforms.remove_inner_newline_chars(tweet.text)
             lemmatized = transforms.lemmatize(raw)
-            print(lemmatized)
+
             if lemmatized:
                 
                 if counter <= max_train_dataset_size:

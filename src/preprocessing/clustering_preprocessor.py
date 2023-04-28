@@ -29,7 +29,7 @@ class ClusteringPreprocessor(object):
 
 
 
-    def fit(self, lemmatized_data: list[str]) -> None:
+    def fit(self, vectorized_data: ndarray, lemmatized_data: ndarray) -> None:
         """
         Generates the bottom layer clusters to be labeled.
         
@@ -42,13 +42,11 @@ class ClusteringPreprocessor(object):
         ----------
             None : The method returns nothing.
         """
-        vectorized_data = self._transforms.vectorize(lemmatized_data)
-
         n_clusters = silhouette_method(vectorized_data) if self._n_clusters is None else self._n_clusters
 
         self._model = KMeans(n_clusters=n_clusters)
 
-        self._dataset = np.array(lemmatized_data)
+        self._dataset = lemmatized_data
         self._model.fit(vectorized_data)
 
 
@@ -72,7 +70,7 @@ class ClusteringPreprocessor(object):
         clusters = []
 
         for cluster_index in range(len(self._model.cluster_centers_)):
-
+            
             cluster_data = self._dataset[self._model.labels_==cluster_index]
             
             if cluster_data.size:
