@@ -17,18 +17,18 @@ class WordCloudUI(object):
 
 
         def __init__(self, clusters):
-                super(WordCloudUI, self).__init__()
-                self._clusters = clusters
-                self._cluster_index = 0
-                
-                self._lesser_dissimilar_labels = np.tile(1, len(clusters))
-                self._most_dissimilar_labels = np.tile(1, len(clusters))
-                
-                self.label_options = { 'Negative': 0, 'Neutral': 1, 'Positive': 2 }
+            super(WordCloudUI, self).__init__()
+            self._clusters = clusters
+            self._cluster_index = 0
+            
+            self._lesser_dissimilar_labels = np.tile(1, len(clusters))
+            self._most_dissimilar_labels = np.tile(1, len(clusters))
+            
+            self.label_options = { 'Negative': 0, 'Neutral': 1, 'Positive': 2 }
 
-                self._create_graphic_components()
-                self._show_current_cluster_data()
-                self._enable_or_disable_components()
+            self._create_graphic_components()
+            self._show_current_cluster_data()
+            self._enable_or_disable_components()
 
 
 
@@ -71,7 +71,7 @@ class WordCloudUI(object):
 
         def _create_graphic_components(self) -> None:
             self._wordcloud = WordCloud(background_color='white', stopwords=set(STOPWORDS))
-            self._fig = plt.figure(num='Cluster Classifier', figsize=(8, 5))
+            self._fig = plt.figure(num='Cluster Classifier', figsize=(10, 6))
             self._image = None
             
             self._img_axis = plt.subplot2grid((2,3), (0,0), colspan=4)

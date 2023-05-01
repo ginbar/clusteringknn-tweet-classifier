@@ -47,6 +47,8 @@ class ClusteringPreprocessor(object):
         self._model = KMeans(n_clusters=n_clusters)
 
         self._dataset = lemmatized_data
+        self._tokenized_tweets = vectorized_data
+
         self._model.fit(vectorized_data)
 
 
@@ -71,14 +73,27 @@ class ClusteringPreprocessor(object):
 
         for cluster_index in range(len(self._model.cluster_centers_)):
             
-            cluster_data = self._dataset[self._model.labels_==cluster_index]
-            
-            if cluster_data.size:
+            cluster_mask = self._model.labels_==cluster_index
+            lemmatized_data = self._dataset[cluster_mask]
+            vectorized_data = self._tokenized_tweets[cluster_mask]
+
+            if lemmatized_data.size:
                 
-                cluster_text = ' '.join(cluster_data)
+                cluster_text = ' '.join(lemmatized_data)
                 centroid = self._model.cluster_centers_[cluster_index]
-                
-                cluster = BottomLevelCluster(cluster_index, cluster_data, None, centroid, cluster_text, "", "")
+                dissimilarities = np.array([np.linalg.norm(entry - centroid) for entry in vectorized_data])
+                most_dissimilar = lemmatized_data[dissimilarities.argmax()]
+                lesser_dissimilar = lemmatized_data[dissimilarities.argmin()]
+
+                cluster = BottomLevelCluster(
+                    cluster_index, 
+                    lemmatized_data, 
+                    None, 
+                    centroid, 
+                    cluster_text, 
+                    lesser_dissimilar, 
+                    most_dissimilar
+                )
                 
                 clusters.append(cluster)
         
