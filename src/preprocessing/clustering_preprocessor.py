@@ -3,7 +3,6 @@ from numpy import ndarray
 from sklearn.cluster import KMeans
 from preprocessing.text_transforms import TextTransforms
 from dtos.bottom_level_cluster import BottomLevelCluster
-from preprocessing.utils import silhouette_method
 
 
 
@@ -20,10 +19,10 @@ class ClusteringPreprocessor(object):
         Language of the data to be inputed.
     """
 
-    def __init__(self, n_clusters:int=None, language:str='portuguese'):
+    def __init__(self, n_clusters:int, transforms:TextTransforms):
         super(ClusteringPreprocessor, self).__init__()
         self._n_clusters = n_clusters
-        self._transforms = TextTransforms(language)
+        self._transforms = transforms
         self._dataset = None
         self._tokenized_tweets = None
 
@@ -42,9 +41,7 @@ class ClusteringPreprocessor(object):
         ----------
             None : The method returns nothing.
         """
-        n_clusters = silhouette_method(vectorized_data) if self._n_clusters is None else self._n_clusters
-
-        self._model = KMeans(n_clusters=n_clusters)
+        self._model = KMeans(n_clusters=self._n_clusters, n_init='auto')
 
         self._dataset = lemmatized_data
         self._tokenized_tweets = vectorized_data

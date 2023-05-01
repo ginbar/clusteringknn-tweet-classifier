@@ -5,17 +5,17 @@ from sklearn.metrics import silhouette_score
 from dtos.preprocessing_results import PreprocessingResults
 
 
+
 def silhouette_method(data:ndarray, min_n_clusters:int=3, max_n_clusters:int=15):
     coefficients = []
     
     for n_cluster in range(min_n_clusters, max_n_clusters + 1):
-        kmeans = KMeans(n_clusters=n_cluster).fit(data)
+        kmeans = KMeans(n_clusters=n_cluster, n_init='auto').fit(data)
         labels = kmeans.labels_
         coefficient = silhouette_score(data, labels)
         coefficients.append(coefficient)
 
     return coefficients.index(max(coefficients)) + min_n_clusters
-
 
 
 

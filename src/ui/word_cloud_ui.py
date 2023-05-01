@@ -70,11 +70,13 @@ class WordCloudUI(object):
 
 
         def _create_graphic_components(self) -> None:
-            self._wordcloud = WordCloud(background_color='white', stopwords=set(STOPWORDS))
+            self._wordcloud = WordCloud(background_color='white', width=600, stopwords=set(STOPWORDS))
             self._fig = plt.figure(num='Cluster Classifier', figsize=(10, 6))
+
             self._image = None
             
             self._img_axis = plt.subplot2grid((2,3), (0,0), colspan=4)
+            self._img_axis.tick_params(axis='both', which='both', bottom=False, top=False, labelbottom=False) 
             
             options = list(self.label_options.keys())
             

@@ -4,6 +4,7 @@ from infra.dataset_reader import DatasetReader
 from ui.word_cloud_ui import WordCloudUI
 from preprocessing.clustering_preprocessor import ClusteringPreprocessor
 from preprocessing.text_transforms import TextTransforms
+from preprocessing.utils import silhouette_method
 from dtos.preprocessing_results import PreprocessingResults
 from infra.preprocessing import save_preprocessing_results
 
@@ -27,7 +28,9 @@ vectorized_data = transforms.vectorize(np.concatenate([train_lemmatized_data, te
 
 train_vectorized_data = vectorized_data[:len(train_lemmatized_data)]
 
-preprocessor = ClusteringPreprocessor(language=args.language)
+n_clusters = silhouette_method(vectorized_data)
+
+preprocessor = ClusteringPreprocessor(n_clusters, transforms)
 preprocessor.fit(train_vectorized_data, train_lemmatized_data)
 
 clusters = preprocessor.create_clusters()
@@ -36,7 +39,7 @@ gui = WordCloudUI(clusters=clusters)
 
 gui.show()
 
-centroids = [c.centroid for c in clusters]
+centroids = [cluster.centroid for cluster in clusters]
 clustering_mask = preprocessor.get_clustering_mask()
 assigned_labels = gui.get_assigned_labels()
 
