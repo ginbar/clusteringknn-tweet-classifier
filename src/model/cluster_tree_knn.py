@@ -261,6 +261,7 @@ class ClusterTreeKNN(ClassifierMixin):
         # Search Lx for the hypernode:
         # Lh = {Y |d(y, x) ≤ γ(d), y ∈ Lx }. 
         Lh_hyper_nodes = [node for node in Lx] #TODO implement conditions
+        # gamma_d = np.array([dissimilarities[i][_y[i] != _y].min() for i in most_dissimilars_indexes])
         
         # If all nodes in Lh have the same class label, then this class is as-
         # sociated with x and the classification process

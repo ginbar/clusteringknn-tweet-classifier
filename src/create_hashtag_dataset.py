@@ -3,6 +3,7 @@ from infra.tweet_fetcher import TweetFetcher
 from infra.dataset_writer import DatasetWriter
 from preprocessing.text_transforms import TextTransforms
 
+
 argument_parser = argparse.ArgumentParser("Create dataset")
 
 argument_parser.add_argument("hashtag", help="Hashtag to be searched.", type=str)
@@ -42,4 +43,3 @@ with DatasetWriter(hashtag, 'train') as train_dataset, DatasetWriter(hashtag, 't
                     test_dataset.save_lemmatized_tweet(lemmatized)
                 
                 counter += 1
-            

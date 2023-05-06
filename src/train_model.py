@@ -7,6 +7,7 @@ from infra.preprocessing import read_preprocessing_results
 from infra.dataset_reader import DatasetReader
 from infra.results import save_results
 
+
 argument_parser = argparse.ArgumentParser("Train model")
 argument_parser.add_argument("hashtag", help="Hashtag used to create the dataset", type=str)
 argument_parser.add_argument("--percentage", help="Percentage of the data to be used for training.", type=float, default=0.8)

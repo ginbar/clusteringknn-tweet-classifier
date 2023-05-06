@@ -76,7 +76,7 @@ class WordCloudUI(object):
             self._image = None
             
             self._img_axis = plt.subplot2grid((2,3), (0,0), colspan=4)
-            self._img_axis.tick_params(axis='both', which='both', bottom=False, top=False, labelbottom=False) 
+            self._img_axis.tick_params(axis='both', which='both', bottom=False, top=False, labelbottom=False)
             
             options = list(self.label_options.keys())
             
