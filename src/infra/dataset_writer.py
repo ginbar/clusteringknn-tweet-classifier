@@ -15,12 +15,12 @@ class DatasetWriter(object):
 
     
     def save_raw_tweet(self, tweet):
-        self._raw_tweets_file.write(tweet)
+        self._raw_tweets_file.write(tweet + '\n')
 
 
 
     def save_lemmatized_tweet(self, tweet):
-        self._lemmatized_tweets_file.write(tweet)
+        self._lemmatized_tweets_file.write(tweet + '\n')
        
 
     

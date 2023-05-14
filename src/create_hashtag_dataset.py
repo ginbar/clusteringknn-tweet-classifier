@@ -15,7 +15,7 @@ args = argument_parser.parse_args()
 
 hashtag = args.hashtag
 
-fetcher = TweetFetcher(hashtag, page_size=10)
+fetcher = TweetFetcher(hashtag, page_size=100)
 transforms = TextTransforms(language=args.language)
 
 
@@ -26,15 +26,19 @@ with DatasetWriter(hashtag, 'train') as train_dataset, DatasetWriter(hashtag, 't
 
     while fetcher.can_fetch_more() and counter < args.maximum:
         
-        tweets = fetcher.next_page()
+        tweets, next_token = fetcher.next_page()
 
         for tweet in tweets:
 
             raw = transforms.remove_inner_newline_chars(tweet.text)
             lemmatized = transforms.lemmatize(raw)
 
-            if lemmatized:
+            if not (lemmatized is None) and len(lemmatized) > 0:
                 
+                print('raw: ' + raw)
+                print('lem: ' + lemmatized)
+                print('############################')
+
                 if counter <= max_train_dataset_size:
                     train_dataset.save_raw_tweet(raw)
                     train_dataset.save_lemmatized_tweet(lemmatized)

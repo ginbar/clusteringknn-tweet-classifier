@@ -1,6 +1,8 @@
 import argparse
 import numpy as np
 from model.cluster_tree_knn import ClusterTreeKNN
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import GridSearchCV
 from preprocessing.text_transforms import TextTransforms
 from preprocessing.utils import remove_invalid_clusters, create_labeling
 from infra.preprocessing import read_preprocessing_results
@@ -30,10 +32,41 @@ vectorized_data = transforms.vectorize(np.concatenate([train_lemmatized_data, te
 train_vectorized_data = vectorized_data[:len(train_lemmatized_data)]
 test_vectorized_data = vectorized_data[-len(test_lemmatized_data):]
 
-model = ClusterTreeKNN(initial_hyperlevel_threshold=5)
 
 cleaned_train_data, cleaned_preprocessing = remove_invalid_clusters(train_vectorized_data, preprocessing)
 y = create_labeling(preprocessing)
+
+model = ClusterTreeKNN()
+
+params = {
+    'n_neighbors': [3, 5, 7, 9, 11, 13], 
+    'sigma_nearest_nodes': [3, 5, 7, 9, 11, 13],
+    'initial_hyperlevel_threshold': [3, 5, 7, 9]
+}
+
+clf = GridSearchCV(
+    estimator=model,
+    param_grid=params,
+    n_jobs=-1,
+    verbose=3
+)
+
+clf.fit(
+    train_vectorized_data, 
+    y,
+    cleaned_preprocessing.clustering_mask, 
+    cleaned_preprocessing.centroids
+)
+
+print(clf.best_params_)
+
+best_params = clf.best_params_
+
+model = ClusterTreeKNN(
+    initial_hyperlevel_threshold=best_params['initial_hyperlevel_threshold'],
+    sigma_nearest_nodes=best_params['sigma_nearest_nodes'],
+    n_neighbors=best_params['n_neighbors']
+)
 
 model.fit(
     train_vectorized_data, 

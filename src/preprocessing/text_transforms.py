@@ -48,7 +48,7 @@ class TextTransforms(object):
 
 
     def remove_inner_newline_chars(self, text:str) -> str:
-        return text.replace('\n', ' ') + '\n'
+        return text.replace('\n', ' ')
 
 
     
@@ -79,7 +79,7 @@ class TextTransforms(object):
         if len(lemmatized) == 0:
             return None
         
-        return ' '.join(lemmatized) + '\n' 
+        return ' '.join(lemmatized)
 
 
 
@@ -108,3 +108,8 @@ class TextTransforms(object):
         vectorizer = CountVectorizer()
         X = vectorizer.fit_transform(texts)
         return X.toarray()
+
+
+
+    def is_rt(self, text:str) -> bool:
+        return not text['retweeted'] and 'RT @' not in text['text']

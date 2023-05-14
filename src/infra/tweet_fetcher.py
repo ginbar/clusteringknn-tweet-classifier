@@ -26,19 +26,19 @@ class TweetFetcher(object):
 
     def next_page(self) -> None:
         response = self._client.search_recent_tweets(
-            query=f'#{self._hashtag}', 
+            query=f'#{self._hashtag} -RT', 
             max_results=self._page_size, 
             next_token=self._next_token
         )
         
-        texts = [tweet for tweet in response.data]
-        
+        texts = [] if response.data is None else [tweet for tweet in response.data]
+
         if 'next_token' in response.meta:
             self._next_token = response.meta['next_token']
         
         self._first_page_fetched = True
         
-        return texts
+        return texts, self._next_token
 
 
 
