@@ -4,7 +4,7 @@ from infra.dataset_reader import DatasetReader
 from ui.word_cloud_ui import WordCloudUI
 from preprocessing.clustering_preprocessor import ClusteringPreprocessor
 from preprocessing.text_transforms import TextTransforms
-from preprocessing.utils import silhouette_method
+from preprocessing.utils import silhouette_scores
 from dtos.preprocessing_results import PreprocessingResults
 from infra.preprocessing import save_preprocessing_results
 
@@ -28,7 +28,7 @@ vectorized_data = transforms.vectorize(np.concatenate([train_lemmatized_data, te
 
 train_vectorized_data = vectorized_data[:len(train_lemmatized_data)]
 
-n_clusters = silhouette_method(vectorized_data)
+_, n_clusters = silhouette_scores(vectorized_data, min_n_clusters=3, max_n_clusters=20)
 
 preprocessor = ClusteringPreprocessor(n_clusters, transforms)
 preprocessor.fit(train_vectorized_data, train_lemmatized_data)

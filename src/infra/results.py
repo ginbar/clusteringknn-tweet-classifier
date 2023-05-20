@@ -17,5 +17,5 @@ def read_results(hashtag: str):
 
 
 
-def read_ground_truth(hashtag: str):
+def read_groundtruth(hashtag: str):
     return np.load(create_file_path(hashtag, None, 'ground_truth'))
