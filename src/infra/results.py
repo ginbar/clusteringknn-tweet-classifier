@@ -17,5 +17,13 @@ def read_results(hashtag: str):
 
 
 
+def save_groundtruth(hashtag: str, groundtruth: ndarray) -> None:
+    
+    create_dataset_folder(hashtag)
+    
+    np.save(create_file_path(hashtag, None, 'groundtruth'), groundtruth)
+
+
+
 def read_groundtruth(hashtag: str):
-    return np.load(create_file_path(hashtag, None, 'ground_truth'))
+    return np.load(create_file_path(hashtag, None, 'groundtruth'))

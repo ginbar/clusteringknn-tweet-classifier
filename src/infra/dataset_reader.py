@@ -6,7 +6,7 @@ class DatasetReader(object):
     
     def __init__(self, hashtag:str, folder:str):
         self._hashtag = hashtag
-        self._raw_tweets_file_path = create_file_path(hashtag, folder, 'raw')
+        self._raw_tweets_file_path = create_file_path(hashtag, folder)
         self._lemmatized_tweets_file_path = create_file_path(hashtag, folder, 'lemm') 
         self._vectorized_tweets_file_path = create_file_path(hashtag, folder, 'vect')
         self._raw_tweets_file = None

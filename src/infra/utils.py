@@ -32,8 +32,7 @@ def create_dataset_folder(hashtag):
 def create_file_path(hashtag, folder=None, suffix=None):
     path = f'{HASHTAG_FILES_PATH}/{hashtag}'
     
-    if not folder is None:
-        path += f'/{folder}/{hashtag}'
+    path += f'/{folder}/{hashtag}' if not folder is None else f'/{hashtag}'
     
     if not suffix is None:
         path += f'.{suffix}'
