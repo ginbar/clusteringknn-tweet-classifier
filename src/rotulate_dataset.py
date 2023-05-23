@@ -11,7 +11,7 @@ from infra.preprocessing import save_preprocessing_results
 
 argument_parser = argparse.ArgumentParser("Rotulate dataset")
 argument_parser.add_argument("hashtag", help="Hashtag used to create the dataset", type=str)
-argument_parser.add_argument("--percentage", help="Percentage of the data to be used for training.", type=float, default=0.8)
+argument_parser.add_argument("--k", help="Number of clusters.", type=int, default=26)
 argument_parser.add_argument("--language", help="Data language.", type=str, default='portuguese')
 
 args = argument_parser.parse_args()
@@ -28,9 +28,7 @@ vectorized_data = transforms.vectorize(np.concatenate([train_lemmatized_data, te
 
 train_vectorized_data = vectorized_data[:len(train_lemmatized_data)]
 
-_, n_clusters = silhouette_scores(vectorized_data, min_n_clusters=3, max_n_clusters=20)
-
-preprocessor = ClusteringPreprocessor(n_clusters, transforms)
+preprocessor = ClusteringPreprocessor(args.k, transforms)
 preprocessor.fit(train_vectorized_data, train_lemmatized_data)
 
 clusters = preprocessor.create_clusters()

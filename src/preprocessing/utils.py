@@ -32,17 +32,17 @@ def remove_invalid_clusters(data:ndarray, preprocessing_results:PreprocessingRes
     clustering_mask = preprocessing_results.clustering_mask
     assigned_labels = preprocessing_results.assigned_labels
 
-    invalid_mask = clustering_mask == invalid_clusters_indexes
-
     if len(invalid_clusters_indexes) > 0:
+        invalid_clusters_indexes = np.array(invalid_clusters_indexes)
+        
+        invalid_data_mask = np.isin(clustering_mask, np.array(invalid_clusters_indexes), invert=True)
+        
+        data = data[invalid_data_mask]
+        clustering_mask = clustering_mask[invalid_data_mask]
 
-        invalid_mask = clustering_mask == invalid_clusters_indexes
-        
-        data = data[invalid_mask]
-        centroids = centroids[invalid_mask]
-        clustering_mask = clustering_mask[invalid_mask]
-        assigned_labels = assigned_labels[invalid_mask]
-        
+        # centroids = np.delete(centroids, invalid_clusters_indexes)
+        assigned_labels = np.delete(assigned_labels, invalid_clusters_indexes, axis=1)
+
     return data, PreprocessingResults(centroids, clustering_mask, assigned_labels)
     
 

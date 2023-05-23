@@ -12,7 +12,7 @@ argument_parser.add_argument("--language", help="Data language.", type=str, defa
 
 args = argument_parser.parse_args()
 
-train_dataset = DatasetReader(args.hashtag, 'train')
+train_dataset = DatasetReader(args.hashtag, 'test')
 
 raw_tweets = train_dataset.get_raw_tweets()
 
@@ -21,7 +21,5 @@ gui = LabellingUI(raw_tweets)
 gui.show()
 
 groundtruth = gui.get_assigned_labels()
-
-print(groundtruth)
 
 save_groundtruth(args.hashtag, groundtruth)

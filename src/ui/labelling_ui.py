@@ -118,7 +118,7 @@ class LabellingUI(object):
         def _show_current_document_data(self) -> None:
             document = self._data[self._data_index]
             
-            self._fig.suptitle(f'#{self._data_index}')
+            self._fig.suptitle(f'#{self._data_index + 1}')
             
             self._txtbox.set_val(document)
 

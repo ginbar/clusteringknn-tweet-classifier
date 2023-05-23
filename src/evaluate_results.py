@@ -11,9 +11,9 @@ args = argument_parser.parse_args()
 
 metrics = [recall_score, precision_score, f1_score]
 
-predicted = read_results(args.hashtag)
+predicted = read_results(args.hashtag).astype(int)
 ground_truth = read_groundtruth(args.hashtag)
 
 for metric in metrics:
     print('Metric: ' + metric.__name__)
-    print('score: ' + str(metric(ground_truth, predicted)))
+    print('score: ' + str(metric(ground_truth, predicted, average='macro')))

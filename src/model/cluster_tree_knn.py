@@ -1,6 +1,6 @@
 import numpy as np
 from numpy import ndarray
-from sklearn.base import ClassifierMixin
+from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.cluster import KMeans, AgglomerativeClustering, DBSCAN
 from scipy.cluster.hierarchy import dendrogram, linkage, ClusterNode
@@ -14,7 +14,7 @@ from dtos.upper_level_cluster import UpperLevelCluster
 
 
 
-class ClusterTreeKNN(ClassifierMixin):
+class ClusterTreeKNN(BaseEstimator, ClassifierMixin):
     """
     KNN over a cluster based tree.
     
@@ -38,22 +38,27 @@ class ClusterTreeKNN(ClassifierMixin):
 
     def __init__(
         self,
+        clusters_masks,
+        centroids,
         n_neighbors:int=5, 
         metric:callable=distance.euclidean,
-        initial_hyperlevel_threshold:float=0.5,
-        sigma_nearest_nodes:int=5
+        initial_hyperlevel_threshold:float=5,
+        sigma_nearest_nodes:int=5,
     ):
         super(ClusterTreeKNN, self).__init__()
 
         # Parameters
-        self._n_neighbors = n_neighbors
-        self._metric = metric
-        self._initial_hyperlevel_threshold = initial_hyperlevel_threshold
-        self._sigma_nearest_nodes = sigma_nearest_nodes
+        self.n_neighbors = n_neighbors
+        self.metric = metric
+        self.initial_hyperlevel_threshold = initial_hyperlevel_threshold
+        self.sigma_nearest_nodes = sigma_nearest_nodes
 
-        self._Blevel = None
-        self._Hlevel = None
-        self._Plevel = None
+        self.clusters_masks = clusters_masks
+        self.centroids = centroids
+
+        self.Blevel = None
+        self.Hlevel = None
+        self.Plevel = None
 
 
 
@@ -61,8 +66,6 @@ class ClusterTreeKNN(ClassifierMixin):
         self, 
         X:ndarray,
         y:ndarray, 
-        clusters_masks:ndarray[int],
-        centroids:ndarray,
     ) -> None:
         """
         Fit the clustering k-nearest neighbors classifier from the training dataset. 
@@ -86,16 +89,21 @@ class ClusterTreeKNN(ClassifierMixin):
         # with all template documents that are labeled
         # during the process described in Section 4.1.
         # These templates constitute a single level B;
-        n_clusters = len(np.unique(clusters_masks))
-        self._Blevel = [BottomLevelCluster(i, X[i == clusters_masks], y[i == clusters_masks], centroids[i]) for i in range(n_clusters)]
-        self._Hlevel = []
-        self._Plevel = []
+        remaining_clusters_labels = [label for label in np.unique(self.clusters_masks)]
+        
+        self.Blevel = [BottomLevelCluster(
+                i, 
+                X[label == self.clusters_masks], 
+                y[label == self.clusters_masks], 
+                self.centroids[i]
+            ) for i, label in enumerate(remaining_clusters_labels)]
+        
+        self.Hlevel = []
+        self.Plevel = []
 
         X_length = X.shape[0]
 
-        remaining_clusters = [i for i in range(n_clusters)]
-        
-        while len(remaining_clusters) > 0:
+        while len(remaining_clusters_labels) > 0:
             
             # Step 2. 
             # ∀Sl ∈ Ω, extract one of the most dissimilar
@@ -104,19 +112,28 @@ class ClusterTreeKNN(ClassifierMixin):
             # ψ(d) and ℓ(d). Then, rank all clusters Sl in
             # descending order of ℓ(.);
             
-            remaining_clusters_mask = np.isin(clusters_masks, remaining_clusters)
+            remaining_clusters_mask = np.isin(self.clusters_masks, remaining_clusters_labels)
 
-            _clusters_masks = clusters_masks[remaining_clusters_mask]
+            _clusters_masks = self.clusters_masks[remaining_clusters_mask]
             _X = X[remaining_clusters_mask]
             _y = y[remaining_clusters_mask]
 
             X_length = _X.shape[0]
-            most_dissimilars = np.array([self._Blevel[c].data[np.linalg.norm(self._Blevel[c].data - centroids[c], axis=1).argmax()] for c in remaining_clusters])
-
-            most_dissimilars_indexes = np.array([np.where((_X == m).all(axis=1))[0][0] for m in most_dissimilars])
-            dissimilarities = np.array([np.linalg.norm(i - j) for i in _X for j in _X]).reshape((X_length, X_length))
             
+            most_dissimilars = np.array(
+                [self.Blevel[i].data[np.linalg.norm(self.Blevel[i].data - self.centroids[i], axis=1).argmax()] 
+                for i, _ in enumerate(remaining_clusters_labels)])
+
+            assert(len(most_dissimilars) > 0)
+            assert(len(_X) > 0)
+
+            most_dissimilars_indexes = [np.where((_X == m).all(axis=1))[0] for m in most_dissimilars]
+            most_dissimilars_indexes = np.array([dist[0] if len(dist) > 0 else 0 for dist in most_dissimilars_indexes])
+            
+            dissimilarities = np.array([np.linalg.norm(i - j) for i in _X for j in _X]).reshape((X_length, X_length))
+
             if np.unique(_y).shape[0] > 1:
+                
                 gamma_d = np.array([dissimilarities[i][_y[i] != _y].min() for i in most_dissimilars_indexes])
                 psi_d = [_X[(_y[i] == _y) & (dissimilarities[i] < gamma_d[k])] for k, i in enumerate(most_dissimilars_indexes)]
                 psi_d_labels = [_y[(_y[i] == _y) & (dissimilarities[i] < gamma_d[k])] for k, i in enumerate(most_dissimilars_indexes)]
@@ -131,73 +148,79 @@ class ClusterTreeKNN(ClassifierMixin):
                 # original dataset, and set up a link between d1
                 # and each pattern of ψ(d1 ) in B ;
 
-                new_hyper_node = HyperLevelCluster(len(self._Hlevel), most_dissimilars[new_hyper_node_index], _y[most_dissimilars_indexes[new_hyper_node_index]])
+                new_hyper_node = HyperLevelCluster(len(self.Hlevel), most_dissimilars[new_hyper_node_index], _y[most_dissimilars_indexes[new_hyper_node_index]])
 
-                self._Hlevel.append(new_hyper_node)
+                self.Hlevel.append(new_hyper_node)
 
                 new_bottol_level_data = psi_d[new_hyper_node_index]
                 new_bottom_level_labels = psi_d_labels[new_hyper_node_index]
 
-                new_bottom_level_node = BottomLevelCluster(len(self._Blevel), new_bottol_level_data, new_bottom_level_labels, None)
+                new_bottom_level_node = BottomLevelCluster(len(self.Blevel), new_bottol_level_data, new_bottom_level_labels, None)
                 
                 cluster_to_be_removed = _clusters_masks[most_dissimilars_indexes[new_hyper_node_index]]
                 
-                remaining_clusters.remove(cluster_to_be_removed)
+                remaining_clusters_labels.remove(cluster_to_be_removed)
                 new_hyper_node.add_child(new_bottom_level_node)
                 
-                self._Blevel.append(new_bottom_level_node)
+                self.Blevel.append(new_bottom_level_node)
             else:
-                remaining_clusters.pop()
+                new_bottom_level_node = BottomLevelCluster(len(self.Blevel), _X, _y, None)
+                self.Blevel.append(new_bottom_level_node)
+                
+                remaining_clusters_labels.pop()
 
             # Step 4. 
             # Repeat Step 2 and Step 3 until the Ω set be-
             # comes empty. At this point, the cluster tree is
             # configured with a hyperlevel, H , and a bottom level, B ;
         
+        assert(len(self.Hlevel) > 0)
+
         # Step 5. 
         # Select a threshold η and cluster all templates
         # in H so that the radius of each cluster is less
         # than or equal to η. All cluster centers form
         # another level of the cluster tree, P ;
-        hyperlevel_threshold = self._initial_hyperlevel_threshold
+        hyperlevel_threshold = self.initial_hyperlevel_threshold
 
-        self._Plevel = self._Hlevel
+        self.Plevel = self.Hlevel
 
-        while len(self._Plevel) > 1:
-            hyperlevel_data = np.array([cluster.data for cluster in self._Plevel]) 
+        while len(self.Plevel) != 1:
+            hyperlevel_data = np.array([cluster.data for cluster in self.Plevel]) 
             new_P_level = None
             
             if hyperlevel_data.shape[0] == 2:
-                upper_node = UpperLevelCluster(len(self._Plevel), hyperlevel_data)
+                upper_node = UpperLevelCluster(len(self.Plevel), hyperlevel_data)
                 
-                for child in self._Plevel:
+                for child in self.Plevel:
                     upper_node.add_child(child)
 
                 new_P_level = [upper_node]
             else:
-                hyperlevel_clustering = DBSCAN(eps=self._initial_hyperlevel_threshold, min_samples=2)
+                hyperlevel_data_size = len(hyperlevel_data)
+                hyperlevel_clustering = DBSCAN(eps=self.initial_hyperlevel_threshold, min_samples=int(0.2 * hyperlevel_data_size))
                 hyperlevel_clustering.fit(hyperlevel_data)
                 
                 if np.unique(hyperlevel_clustering.labels_).shape[0] > 1:
                     new_P_level = []
                     core_indeces = hyperlevel_clustering.core_sample_indices_
-
+                    
                     for i, centr_ind in enumerate(core_indeces):
                         upper_node = UpperLevelCluster(i, hyperlevel_data[centr_ind])
                         
-                        for child in self._Plevel:
+                        for child in self.Plevel:
                             upper_node.add_child(child)
                         
                         new_P_level.append(upper_node)
                 else:
-                    upper_node = UpperLevelCluster(len(self._Plevel), hyperlevel_data)
+                    upper_node = UpperLevelCluster(len(self.Plevel), hyperlevel_data)
                     
-                    for child in self._Plevel:
+                    for child in self.Plevel:
                         upper_node.add_child(child)
 
                     new_P_level = [upper_node]
-            
-            self._Plevel = new_P_level
+
+            self.Plevel = new_P_level
             hyperlevel_threshold = hyperlevel_threshold + 0.5
             # Step 6. 
             # Increase the threshold η and repeat Step 5 for
@@ -234,13 +257,15 @@ class ClusterTreeKNN(ClassifierMixin):
         # and each node at the top level of the cluster
         # tree and choose the ς nearest nodes as a node
         # set Lx ;
-        distances = np.array([np.linalg.norm(cluster.data - sample) for cluster in self._Plevel])
-        indexes = distances.argsort()[:self._sigma_nearest_nodes]
+        distances = np.array([np.linalg.norm(cluster.data - sample) for cluster in self.Plevel])
+        indexes = distances.argsort()[:self.sigma_nearest_nodes]
         
-        Lx = np.take(self._Plevel, indexes)
+        Lx = np.take(self.Plevel, indexes)
+        
+        assert(len(Lx) > 0)
 
         while not any(isinstance(cluster, HyperLevelCluster) for cluster in Lx):
-
+            
             # Step 2. 
             # Compute the dissimilarity between x and
             # each subnode linked to the nodes in Lx , and
@@ -248,7 +273,7 @@ class ClusterTreeKNN(ClassifierMixin):
             # used to update the node set Lx ;
             subnodes = np.array([cluster.children for cluster in Lx]).flatten()
             distances = np.array([np.linalg.norm(cluster.data - sample) for cluster in subnodes])
-            indexes = distances.argsort()[:self._sigma_nearest_nodes]
+            indexes = distances.argsort()[:self.sigma_nearest_nodes]
 
             Lx = np.take(subnodes, indexes)
 
@@ -288,7 +313,7 @@ class ClusterTreeKNN(ClassifierMixin):
             bottom_level_data = np.concatenate(bottom_level_data)
             bottom_level_label = np.concatenate(bottom_level_label)
             
-            knn = KNeighborsClassifier(n_neighbors=self._n_neighbors)
+            knn = KNeighborsClassifier(n_neighbors=self.n_neighbors)
             
             knn.fit(bottom_level_data, bottom_level_label)
 

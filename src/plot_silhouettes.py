@@ -57,8 +57,6 @@ for n_clusters in range_n_clusters:
         ax.text(-0.05, y_lower + 0.5 * size_cluster_i, str(i))
         y_lower = y_upper + 10  
     
-    print('##################################### ' + str(n_clusters))
-    
     ax.set_title(f"Análise de silhueta para o KMeans com k = {n_clusters}")
     ax.set_xlabel("Coeficiente silhueta")
     ax.set_ylabel("Agrupamento")
