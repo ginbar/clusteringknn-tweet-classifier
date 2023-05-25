@@ -148,14 +148,24 @@ class ClusterTreeKNN(BaseEstimator, ClassifierMixin):
                 # original dataset, and set up a link between d1
                 # and each pattern of ψ(d1 ) in B ;
 
-                new_hyper_node = HyperLevelCluster(len(self.Hlevel), most_dissimilars[new_hyper_node_index], _y[most_dissimilars_indexes[new_hyper_node_index]])
+                new_hyper_node = HyperLevelCluster(
+                    len(self.Hlevel), 
+                    most_dissimilars[new_hyper_node_index], 
+                    _y[most_dissimilars_indexes[new_hyper_node_index]],
+                    gamma_d[new_hyper_node_index]
+                )
 
                 self.Hlevel.append(new_hyper_node)
 
                 new_bottol_level_data = psi_d[new_hyper_node_index]
                 new_bottom_level_labels = psi_d_labels[new_hyper_node_index]
 
-                new_bottom_level_node = BottomLevelCluster(len(self.Blevel), new_bottol_level_data, new_bottom_level_labels, None)
+                new_bottom_level_node = BottomLevelCluster(
+                    len(self.Blevel), 
+                    new_bottol_level_data,
+                    new_bottom_level_labels, 
+                    None
+                )
                 
                 cluster_to_be_removed = _clusters_masks[most_dissimilars_indexes[new_hyper_node_index]]
                 
@@ -164,7 +174,18 @@ class ClusterTreeKNN(BaseEstimator, ClassifierMixin):
                 
                 self.Blevel.append(new_bottom_level_node)
             else:
+                new_hyper_node = HyperLevelCluster(
+                    len(self.Hlevel), 
+                    most_dissimilars[0], 
+                    _y[0],
+                    gamma_d[0]
+                )
+
                 new_bottom_level_node = BottomLevelCluster(len(self.Blevel), _X, _y, None)
+
+                self.Hlevel.append(new_hyper_node)
+                new_hyper_node.add_child(new_bottom_level_node)
+
                 self.Blevel.append(new_bottom_level_node)
                 
                 remaining_clusters_labels.pop()
@@ -285,9 +306,13 @@ class ClusterTreeKNN(BaseEstimator, ClassifierMixin):
         # Step 4. 
         # Search Lx for the hypernode:
         # Lh = {Y |d(y, x) ≤ γ(d), y ∈ Lx }. 
-        Lh_hyper_nodes = [node for node in Lx] #TODO implement conditions
-        # gamma_d = np.array([dissimilarities[i][_y[i] != _y].min() for i in most_dissimilars_indexes])
+        #TODO implement conditions
+        # Lh_hyper_nodes = [node for node in Lx]
+        Lh_hyper_nodes = [node for node in Lx if np.linalg.norm(node.data - sample) <= node.gamma_d]
         
+        if len(Lh_hyper_nodes) == 0:
+            Lh_hyper_nodes = Lx
+
         # If all nodes in Lh have the same class label, then this class is as-
         # sociated with x and the classification process
         # stops; otherwise, go to Step 5;

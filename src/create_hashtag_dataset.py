@@ -27,7 +27,7 @@ with DatasetWriter(hashtag, 'train') as train_dataset, DatasetWriter(hashtag, 't
     while fetcher.can_fetch_more() and counter < args.maximum:
         
         tweets, next_token = fetcher.next_page()
-
+        
         for tweet in tweets:
 
             raw = transforms.remove_inner_newline_chars(tweet.text)

@@ -21,7 +21,8 @@ class TweetFetcher(object):
         self._page_size = page_size
         self._next_token = None
         self._first_page_fetched = False
-
+        self._last_page_size = None
+        
 
 
     def next_page(self) -> None:
@@ -36,14 +37,15 @@ class TweetFetcher(object):
         if 'next_token' in response.meta:
             self._next_token = response.meta['next_token']
         
-        self._first_page_fetched = True
+        self._last_page_size = len(response.data)
+
         
         return texts, self._next_token
 
 
 
     def can_fetch_more(self) -> bool:
-        return not self._first_page_fetched or not self._next_token is None
+        return self._last_page_size is None or self._last_page_size == self._page_size
 
 
 

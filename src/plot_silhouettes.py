@@ -14,7 +14,7 @@ transforms = TextTransforms(language='portuguese')
 reader = DatasetReader('PL2630', 'train')
 data = transforms.vectorize(reader.get_lemmatized_tweets())
 
-min_k, max_k = 3, 35
+min_k, max_k = 80, 100
 range_n_clusters = [k for k in range(min_k, max_k + 1)]
 
 
@@ -28,7 +28,7 @@ for n_clusters in range_n_clusters:
     ax.set_xlim([-0.1, 1])
     ax.set_ylim([0, len(data) + (n_clusters + 1) * 10])
 
-    clusterer = KMeans(n_clusters=n_clusters, n_init="auto", random_state=42)
+    clusterer = KMeans(n_clusters=n_clusters, n_init=10, random_state=12)
     cluster_labels = clusterer.fit_predict(data)
 
     silhouette_avg = silhouette_score(data, cluster_labels)
@@ -53,7 +53,7 @@ for n_clusters in range_n_clusters:
             edgecolor=color,
             alpha=0.7,
         )
-        print(size_cluster_i)
+
         ax.text(-0.05, y_lower + 0.5 * size_cluster_i, str(i))
         y_lower = y_upper + 10  
     

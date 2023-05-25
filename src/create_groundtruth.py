@@ -14,7 +14,7 @@ args = argument_parser.parse_args()
 
 train_dataset = DatasetReader(args.hashtag, 'test')
 
-raw_tweets = train_dataset.get_raw_tweets()
+raw_tweets = train_dataset.get_lemmatized_tweets()
 
 gui = LabellingUI(raw_tweets)
 

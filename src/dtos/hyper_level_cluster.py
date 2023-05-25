@@ -25,6 +25,7 @@ class HyperLevelCluster(object):
     index:int
     data:ndarray
     label:any
+    gamma_d:ndarray
     children:list[BottomLevelCluster]=None
 
 

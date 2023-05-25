@@ -41,7 +41,7 @@ class ClusteringPreprocessor(object):
         ----------
             None : The method returns nothing.
         """
-        self._model = KMeans(n_clusters=self._n_clusters, n_init='auto')
+        self._model = KMeans(n_clusters=self._n_clusters, n_init=10, random_state=12)
 
         self._dataset = lemmatized_data
         self._tokenized_tweets = vectorized_data

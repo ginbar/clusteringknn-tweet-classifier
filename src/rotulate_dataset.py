@@ -11,7 +11,7 @@ from infra.preprocessing import save_preprocessing_results
 
 argument_parser = argparse.ArgumentParser("Rotulate dataset")
 argument_parser.add_argument("hashtag", help="Hashtag used to create the dataset", type=str)
-argument_parser.add_argument("--k", help="Number of clusters.", type=int, default=26)
+argument_parser.add_argument("--k", help="Number of clusters.", type=int, default=19)
 argument_parser.add_argument("--language", help="Data language.", type=str, default='portuguese')
 
 args = argument_parser.parse_args()
