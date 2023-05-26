@@ -41,7 +41,7 @@ y = create_labeling(cleaned_preprocessing)
 # params = {
 #     'n_neighbors': [3, 5, 9, 11], 
 #     'sigma_nearest_nodes': [2, 3, 4, 5],
-#     'initial_hyperlevel_threshold': [3, 5, 7]
+#     'initial_hyperlevel_threshold': [5, 7, 9]
 # }
 
 # clf = GridSearchCV(
@@ -65,10 +65,18 @@ y = create_labeling(cleaned_preprocessing)
 #     n_neighbors=best_params['n_neighbors']
 # )
 
+# model = ClusterTreeKNN(
+#     cleaned_preprocessing.clustering_mask,
+#     cleaned_preprocessing.centroids,
+#     initial_hyperlevel_threshold=5,
+#     sigma_nearest_nodes=5,
+#     n_neighbors=7
+# )
+
 model = ClusterTreeKNN(
     cleaned_preprocessing.clustering_mask,
     cleaned_preprocessing.centroids,
-    initial_hyperlevel_threshold=5,
+    initial_hyperlevel_threshold=7,
     sigma_nearest_nodes=5,
     n_neighbors=7
 )

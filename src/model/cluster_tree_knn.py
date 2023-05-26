@@ -56,6 +56,8 @@ class ClusterTreeKNN(BaseEstimator, ClassifierMixin):
         self.clusters_masks = clusters_masks
         self.centroids = centroids
 
+        self._max_iter = 100
+
         self.Blevel = None
         self.Hlevel = None
         self.Plevel = None
@@ -103,6 +105,8 @@ class ClusterTreeKNN(BaseEstimator, ClassifierMixin):
 
         X_length = X.shape[0]
 
+        iter = 0
+
         while len(remaining_clusters_labels) > 0:
             
             # Step 2. 
@@ -124,8 +128,8 @@ class ClusterTreeKNN(BaseEstimator, ClassifierMixin):
                 [self.Blevel[i].data[np.linalg.norm(self.Blevel[i].data - self.centroids[i], axis=1).argmax()] 
                 for i, _ in enumerate(remaining_clusters_labels)])
 
-            assert(len(most_dissimilars) > 0)
-            assert(len(_X) > 0)
+            assert(most_dissimilars.shape[0] > 0)
+            assert(_X.shape[0] > 0)
 
             most_dissimilars_indexes = [np.where((_X == m).all(axis=1))[0] for m in most_dissimilars]
             most_dissimilars_indexes = np.array([dist[0] if len(dist) > 0 else 0 for dist in most_dissimilars_indexes])
@@ -194,6 +198,8 @@ class ClusterTreeKNN(BaseEstimator, ClassifierMixin):
             # Repeat Step 2 and Step 3 until the Ω set be-
             # comes empty. At this point, the cluster tree is
             # configured with a hyperlevel, H , and a bottom level, B ;
+            iter = iter + 1
+            assert(iter < self._max_iter)
         
         assert(len(self.Hlevel) > 0)
 
@@ -205,6 +211,7 @@ class ClusterTreeKNN(BaseEstimator, ClassifierMixin):
         hyperlevel_threshold = self.initial_hyperlevel_threshold
 
         self.Plevel = self.Hlevel
+        iter = 0
 
         while len(self.Plevel) != 1:
             hyperlevel_data = np.array([cluster.data for cluster in self.Plevel]) 
@@ -218,11 +225,16 @@ class ClusterTreeKNN(BaseEstimator, ClassifierMixin):
 
                 new_P_level = [upper_node]
             else:
-                hyperlevel_data_size = len(hyperlevel_data)
-                hyperlevel_clustering = DBSCAN(eps=self.initial_hyperlevel_threshold, min_samples=int(0.2 * hyperlevel_data_size))
+                hyperlevel_data_size = hyperlevel_data.shape[0]
+                min_samples = int(0.2 * hyperlevel_data_size)
+                
+                if min_samples < 3:
+                    min_samples = 3
+                
+                hyperlevel_clustering = DBSCAN(eps=self.initial_hyperlevel_threshold, min_samples=min_samples)
                 hyperlevel_clustering.fit(hyperlevel_data)
                 
-                if np.unique(hyperlevel_clustering.labels_).shape[0] > 1:
+                if np.unique(hyperlevel_clustering.labels_).shape[0] > 1 and hyperlevel_clustering.core_sample_indices_.shape[0] < hyperlevel_data.shape[0]:
                     new_P_level = []
                     core_indeces = hyperlevel_clustering.core_sample_indices_
                     
@@ -247,6 +259,9 @@ class ClusterTreeKNN(BaseEstimator, ClassifierMixin):
             # Increase the threshold η and repeat Step 5 for
             # all nodes at the level P until a single node is
             # left in the resulting level.
+
+            iter = iter + 1
+            assert(iter < self._max_iter)
 
         return self
 
@@ -283,7 +298,9 @@ class ClusterTreeKNN(BaseEstimator, ClassifierMixin):
         
         Lx = np.take(self.Plevel, indexes)
         
-        assert(len(Lx) > 0)
+        assert(Lx.shape[0] > 0)
+
+        iter = 0
 
         while not any(isinstance(cluster, HyperLevelCluster) for cluster in Lx):
             
@@ -302,6 +319,9 @@ class ClusterTreeKNN(BaseEstimator, ClassifierMixin):
             # Repeat Step 2 until reaching the hyperlevel
             # in the tree. When the searching stops at the
             # hyperlevel, Lx consists of ς hypernodes;
+            iter = iter + 1
+            assert(iter < self._max_iter)
+
 
         # Step 4. 
         # Search Lx for the hypernode:
@@ -338,7 +358,13 @@ class ClusterTreeKNN(BaseEstimator, ClassifierMixin):
             bottom_level_data = np.concatenate(bottom_level_data)
             bottom_level_label = np.concatenate(bottom_level_label)
             
-            knn = KNeighborsClassifier(n_neighbors=self.n_neighbors)
+            n_neighbors = self.n_neighbors
+
+            if bottom_level_data.shape[0] < n_neighbors:
+                n_neighbors = bottom_level_data.shape[0]
+
+            print(n_neighbors, bottom_level_data.shape[0])
+            knn = KNeighborsClassifier(n_neighbors=n_neighbors)
             
             knn.fit(bottom_level_data, bottom_level_label)
 

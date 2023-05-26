@@ -11,16 +11,12 @@ argument_parser.add_argument("--percentage", help="Percentage of the data to be 
 
 args = argument_parser.parse_args()
 
-# predicted = read_results(args.hashtag)
-# groundtruth = read_groundtruth(args.hashtag)
-
-predicted = [1,0,-1,1,-1,0,1,1,-1,0,0,1]
-groundtruth = [1,1,0,1,-1,1,-1,1,-1,1,0,1]
+predicted = read_results(args.hashtag)
+groundtruth = read_groundtruth(args.hashtag)
 
 cm = confusion_matrix(groundtruth, predicted)
 
 cm_display = ConfusionMatrixDisplay(cm).plot()
-
 
 plt.xlabel("Resultado")
 plt.ylabel("Groundtruth")

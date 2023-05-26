@@ -1,4 +1,5 @@
 import argparse
+import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import pyplot as plt
 from sklearn.metrics import roc_curve, auc, RocCurveDisplay
@@ -16,15 +17,16 @@ groundtruth = read_groundtruth(args.hashtag)
 
 labels = ['Negativo', 'Neutro', 'Positivo']
 
+
 def one_vs_all(array, value):
     pos_mask = array == value
     neg_mask = array != value
     
-    new_array = array[:]
+    new_array = array.copy()
 
-    new_array[pos_mask] = 1
-    new_array[neg_mask] = 0
-
+    np.putmask(new_array, pos_mask, 1)
+    np.putmask(new_array, neg_mask, 0)
+    
     return new_array
 
 
@@ -32,7 +34,7 @@ for label, label_name in enumerate(labels):
 
     ovsa_groundtruth = one_vs_all(groundtruth, label)
     ovsa_predicted = one_vs_all(predicted, label)
-
+    
     fpr, tpr, thresholds = roc_curve(ovsa_groundtruth, ovsa_predicted)
 
     roc_auc = auc(fpr, tpr)
