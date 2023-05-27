@@ -40,8 +40,25 @@ model = KNeighborsClassifier(n_neighbors=7)
 model.fit(cleaned_train_data, y)
 
 predicted = model.predict(test_vectorized_data)
-ground_truth = read_groundtruth(args.hashtag)
+groundtruth = read_groundtruth(args.hashtag)
 
 for metric in metrics:
     print('Metric: ' + metric.__name__)
-    print('score: ' + str(metric(ground_truth, predicted, average='macro')))
+    print('score: ' + str(metric(groundtruth, predicted, average='macro')))
+
+print('#')
+
+labels = ['Neg', 'Neu', 'Pos']
+
+for index, label in enumerate(labels):
+    print(f'{label}: {(predicted==index).sum()}')
+
+print('#')
+
+for index, label in enumerate(labels):
+    print(f'{label}: {(groundtruth==index).sum()}')
+
+print('#')
+
+for index, label in enumerate(labels):
+    print(f'{label}: {(y==index).sum()}')
