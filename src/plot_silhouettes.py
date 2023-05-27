@@ -14,7 +14,7 @@ transforms = TextTransforms(language='portuguese')
 reader = DatasetReader('PL2630', 'train')
 data = transforms.vectorize(reader.get_lemmatized_tweets())
 
-min_k, max_k = 80, 100
+min_k, max_k = 5, 80
 range_n_clusters = [k for k in range(min_k, max_k + 1)]
 
 
