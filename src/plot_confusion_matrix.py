@@ -16,7 +16,7 @@ groundtruth = read_groundtruth(args.hashtag)
 
 cm = confusion_matrix(groundtruth, predicted)
 
-cm_display = ConfusionMatrixDisplay(cm).plot()
+cm_display = ConfusionMatrixDisplay(cm, display_labels=['negativo', 'neutro', 'positivo']).plot()
 
 plt.xlabel("Resultado")
 plt.ylabel("Groundtruth")

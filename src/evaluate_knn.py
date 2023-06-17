@@ -2,6 +2,8 @@ import argparse
 import numpy as np
 from sklearn.metrics import recall_score, precision_score, f1_score
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
 from infra.dataset_reader import DatasetReader
 from infra.preprocessing import read_preprocessing_results
 from infra.results import read_groundtruth
@@ -37,6 +39,8 @@ cleaned_train_data, cleaned_preprocessing = remove_invalid_clusters(train_vector
 y = create_labeling(cleaned_preprocessing)
 
 model = KNeighborsClassifier(n_neighbors=7)
+# model = SVC()
+# model = RandomForestClassifier()
 model.fit(cleaned_train_data, y)
 
 predicted = model.predict(test_vectorized_data)
@@ -44,7 +48,7 @@ groundtruth = read_groundtruth(args.hashtag)
 
 for metric in metrics:
     print('Metric: ' + metric.__name__)
-    print('score: ' + str(metric(groundtruth, predicted, average='macro')))
+    print('score: ' + str(metric(groundtruth, predicted, average='micro')))
 
 print('#')
 
