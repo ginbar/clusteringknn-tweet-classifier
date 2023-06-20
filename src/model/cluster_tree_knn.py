@@ -363,7 +363,6 @@ class ClusterTreeKNN(BaseEstimator, ClassifierMixin):
             if bottom_level_data.shape[0] < n_neighbors:
                 n_neighbors = bottom_level_data.shape[0]
 
-            print(n_neighbors, bottom_level_data.shape[0])
             knn = KNeighborsClassifier(n_neighbors=n_neighbors)
             
             knn.fit(bottom_level_data, bottom_level_label)

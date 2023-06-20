@@ -1,5 +1,6 @@
 import argparse
 import numpy as np
+from chronometer import Chronometer
 from model.cluster_tree_knn import ClusterTreeKNN
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import GridSearchCV
@@ -86,6 +87,9 @@ model.fit(
     y
 )
 
-results = model.predict(test_vectorized_data)
+with Chronometer() as exec_time:
+    results = model.predict(test_vectorized_data)
+
+print(f'Exec time: {float(exec_time)}s')
 
 save_results(args.hashtag, results)

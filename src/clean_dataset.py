@@ -18,7 +18,5 @@ tweets = reader.get_lemmatized_tweets()
 
 tweets = set(tweets)
 
-print(len(tweets))
-
 with open(os.open(f'../{hashtag}.cleaned', os.O_CREAT | os.O_WRONLY) , 'w') as cleaned_file:
     cleaned_file.writelines(tweets)
